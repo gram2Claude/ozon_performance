@@ -5,10 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Setup
 
 ```bash
-pip install -r requirements.txt
+pip install -r {MODULE_NAME}/requirements.txt
 ```
 
-Credentials go in `.env` (copy from `.env.example`):
+Credentials go in `{MODULE_NAME}/.env` (copy from `{MODULE_NAME}/.env.example`):
 
 ```
 # [OAUTH variant]
@@ -26,11 +26,12 @@ or they can be passed explicitly to the constructor.
 
 Demo notebook:
 ```bash
-jupyter notebook {MODULE_NAME}_demo.ipynb
+jupyter notebook {MODULE_NAME}/{MODULE_NAME}_demo.ipynb
 ```
 
 Quick smoke-test from Python REPL (requires real credentials):
 ```python
+import sys; sys.path.insert(0, "{MODULE_NAME}")
 from {MODULE_NAME} import {FUNCTION_1_NAME}
 df = {FUNCTION_1_NAME}()
 print(df.shape)
@@ -38,7 +39,7 @@ print(df.shape)
 
 ## Architecture
 
-Single-file library: `{MODULE_NAME}.py`.
+Single-file library: `{MODULE_NAME}/{MODULE_NAME}.py`.
 
 **`{CLASS_NAME}`** — internal HTTP client:
 - [OAUTH] OAuth 2.0 `client_credentials` auth; token auto-refreshed 60 s before expiry
@@ -84,7 +85,7 @@ N_days × N_batches. The `increment` column is computed locally via groupby().di
 
 ## API Constraints
 
-From `specs/{API_REFERENCE_FILENAME}`:
+From `specs/{API_REFERENCE_FILENAME}` (repo root):
 - Max **{BATCH_SIZE} {ENTITY_NAME}s** per statistics request
 - [ASYNC] Max **{MAX_CONCURRENT} concurrent** report generation tasks
 - Max **{MAX_REQUESTS_PER_DAY} requests/day** per account
@@ -100,5 +101,5 @@ where the default console encoding may be cp1251. This is intentional; do not re
 
 ## Spec Reference
 
-`specs/{API_REFERENCE_FILENAME}` — full list of {API_NAME} API endpoints. Already-implemented
-endpoints are marked. Use this when adding new API methods.
+`specs/{API_REFERENCE_FILENAME}` (repo root) — full list of {API_NAME} API endpoints.
+Already-implemented endpoints are marked. Use this when adding new API methods.
