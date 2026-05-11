@@ -4,10 +4,12 @@
 Инициализация нового проекта: создание папок и базовых файлов.
 Скажи Claude: «Инициализируй структуру проекта».
 
-Claude создаёт подпапку `{MODULE_NAME}/` в текущей директории и помещает туда только проектные файлы
-(библиотека, CLAUDE.md, requirements, info/, specs/, plans/, smoke_tests/, raw_data/).
-`manual_forms/` и `auto_generated/` остаются на уровне репозитория рядом с `test/` — они входные
-данные и промежуточные артефакты, а не часть проекта.
+Claude создаёт подпапку `{MODULE_NAME}/` в текущей директории — только исполняемый код:
+библиотека, requirements, tests/, smoke_tests/, raw_data/, .env.
+
+На уровне репозитория (рядом с `test/`) остаются:
+- `CLAUDE.md`, `info/`, `specs/`, `plans/` — документация и артефакты процесса
+- `manual_forms/`, `auto_generated/` — входные данные и промежуточный скаффолд
 
 ---
 
@@ -60,11 +62,11 @@ Claude определяет автоматически из документац
 ---
 
 ## Шаг 3 — `auto_generated/` (генерируется автоматически)
-На основе шагов 1 и 2 Claude создаёт **только скаффолд** (без концретных публичных функций):
-- `04_template_client.py` → класс `{CLASS_NAME}` (auth, HTTP-обёртки),
-  helpers, константы, **стабы** публичных функций (с `raise NotImplementedError`)
-- `05_template_CLAUDE.md` → CLAUDE.md проекта
-- `06_template_demo.ipynb` → демо-ноутбук
+На основе шагов 1 и 2 Claude создаёт **только скаффолд** (без конкретных публичных функций):
+- `04_template_client.py` → `{MODULE_NAME}/{MODULE_NAME}.py` (класс `{CLASS_NAME}`, auth, HTTP-обёртки,
+  helpers, константы, **стабы** публичных функций с `raise NotImplementedError`)
+- `05_template_CLAUDE.md` → `CLAUDE.md` (корень репо)
+- `06_template_demo.ipynb` → `{MODULE_NAME}/{MODULE_NAME}_demo.ipynb`
 
 Все публичные функции (включая первую — справочник) реализуются в Шаге 4
 через цикл spec → plan → impl. Без исключений.
@@ -114,24 +116,24 @@ Claude определяет автоматически из документац
 
 ### Цикл для каждой функции
 
-1. Claude создаёт спецификацию по шаблону `spec_templates/07_template_spec.md`
-   → сохраняется в `specs/NN_spec_имя_функции.md`
+1. Claude создаёт спецификацию по шаблону `test/spec_templates/07_template_spec.md`
+   → сохраняется в `specs/NN_spec_имя_функции.md` (корень репо)
 2. Пользователь проверяет, вносит правки, утверждает
-3. Claude создаёт план по шаблону `plan_templates/08_template_plan.md`
-   → сохраняется в `plans/NN_plan_имя_функции.md`
+3. Claude создаёт план по шаблону `test/plan_templates/08_template_plan.md`
+   → сохраняется в `plans/NN_plan_имя_функции.md` (корень репо)
 4. Пользователь проверяет, вносит правки, утверждает
-5. Claude реализует функцию согласно утверждённому плану
+5. Claude реализует функцию согласно утверждённому плану → `{MODULE_NAME}/{MODULE_NAME}.py`
 6. Проверка с реальным API:
-   - Claude создаёт smoke-test скрипт `smoke_tests/test_<имя_функции>.py`
-     в папке `smoke_tests/` проекта (если ещё не существует), читающий `.env`
-     через `python-dotenv` из корня проекта (`PROJECT_ROOT / ".env"`)
-   - Скрипт добавляет корень проекта в `sys.path` для импорта `{MODULE_NAME}`:
+   - Claude создаёт smoke-test скрипт `{MODULE_NAME}/smoke_tests/test_<имя_функции>.py`
+     (если ещё не существует), читающий `.env` через `python-dotenv`:
+     `load_dotenv(PROJECT_ROOT / ".env")`, где `PROJECT_ROOT = {MODULE_NAME}/`
+   - Скрипт добавляет `{MODULE_NAME}/` в `sys.path` для импорта библиотеки:
      ```python
      PROJECT_ROOT = Path(__file__).resolve().parent.parent
      sys.path.insert(0, str(PROJECT_ROOT))
      ```
    - **Запускает тест самостоятельно** через
-     `python smoke_tests/test_<имя_функции>.py` (запуск из корня проекта) —
+     `python {MODULE_NAME}/smoke_tests/test_<имя_функции>.py` (запуск из корня репо) —
      не ждёт ручного запуска
    - Использует даты из `.env`: `TEST_START_DATE`, `TEST_END_DATE`,
      `TEST_GLOBAL_START_DATE` (для охватных функций)
@@ -144,7 +146,7 @@ Claude определяет автоматически из документац
      Если несколько функций используют одни даты (например, `get_campaigns_daily_stat`
      и `get_ads_daily_stat`), они разделяют один кэш — вторая функция API не вызывает.
    - При ошибках чинит итеративно до зелёного результата
-   - **После успешного прогона** сохраняет DataFrame в `raw_data/<имя_функции>.csv`,
+   - **После успешного прогона** сохраняет DataFrame в `{MODULE_NAME}/raw_data/<имя_функции>.csv`,
      где `<имя_функции>` — точное имя Python-функции:
      - справочники: `get_campaign_dict.csv`
      - статистика с датами: `get_campaigns_daily_stat_2026-04-24_2026-04-25.csv`
@@ -153,13 +155,13 @@ Claude определяет автоматически из документац
    с моками (быстрые, без `.env`). `smoke_tests/` — реальный API + `.env`
    (минуты, требуют credentials). Разделение исключает конфликт с pytest discovery.
 7. **Обязательный показ результата:** после успешной проверки Claude **обязан
-   вывести в чат первые 5 строк** из **сохранённого CSV-файла** (`raw_data/...csv`),
+   вывести в чат первые 5 строк** из **сохранённого CSV-файла** (`{MODULE_NAME}/raw_data/...csv`),
    плюс `shape` и `columns`. Читать из CSV (не из DataFrame в памяти) —
    это заодно верифицирует корректность записи файла. Без этого шаг считается
    незавершённым. Больше строк — только если пользователь явно попросил.
    Формат — Markdown-таблица для удобства чтения.
 8. **Обновление реестра функций:** Claude обновляет файл
-   `info/01_functions_implemented.md` (структура — по шаблону
+   `info/01_functions_implemented.md` (корень репо; структура — по шаблону
    `manual_forms/02c_FUNCTIONS_IMPLEMENTED.md`):
    - При первичной реализации — добавляет блок о функции (используемый
      API-метод, поля выходного DataFrame с маппингом на оригинальные поля API,
