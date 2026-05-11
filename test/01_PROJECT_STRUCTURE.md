@@ -16,8 +16,24 @@
 ```
 repo_root/
 ├── test/                  ← шаблоны (не трогать)
-└── {MODULE_NAME}/         ← папка проекта (создаётся здесь)
+├── manual_forms/          ← заполненные анкеты проекта (входные данные для Claude)
+├── auto_generated/        ← скаффолд, сгенерированный Claude на Шаге 3
+└── {MODULE_NAME}/         ← проектные файлы (создаются здесь)
+    ├── {MODULE_NAME}.py
+    ├── CLAUDE.md
+    ├── requirements.txt
+    ├── .env
+    ├── info/
+    ├── specs/
+    ├── plans/
+    ├── smoke_tests/
+    └── raw_data/
 ```
+
+В `{MODULE_NAME}/` попадают **только файлы проекта** — то, что Claude создаёт как результат
+(библиотека, CLAUDE.md, requirements, specs, plans, smoke_tests, info, raw_data).
+`manual_forms/` и `auto_generated/` живут рядом с `test/` на уровне репозитория — это входные
+данные и промежуточные артефакты шаблонной системы, не часть проекта.
 
 ---
 
