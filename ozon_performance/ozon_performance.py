@@ -3,7 +3,7 @@
 Публичные функции, возвращающие pandas DataFrame:
 - get_campaign_dict()                                                    — Справочник рекламных кампаний
 - get_campaigns_daily_stat(date_from, date_to)                           — Статистика по кампаниям без охватов по дням  ✓
-- get_ads_daily_stat(date_from, date_to)                                 — Статистика по объявлениям без охватов по дням
+- get_ads_daily_stat(date_from, date_to)                                 — Статистика по объявлениям без охватов по дням  ✓
 - get_reach_campaigns_daily_stat(global_start_date, date_from, date_to) — Охват кампаний накопительно по дням
 - get_reach_ads_daily_stat(global_start_date, date_from, date_to)       — Охват объявлений накопительно по дням
 - get_video_ads_daily_stat(date_from, date_to)                           — Видео-статистика по объявлениям по дням
@@ -445,6 +445,51 @@ def _parse_stat_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
     ]
 
 
+def _parse_ads_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
+    """Парсит один CSV статистики, возвращает строки уровня объявления (без агрегации).
+
+    Формат CSV идентичен _parse_stat_csv. Отличие: одна строка на объявление × день.
+    """
+    text = _decode_csv(data)
+    lines = text.splitlines()
+
+    header_idx = None
+    for i, line in enumerate(lines):
+        if line.startswith("День;"):
+            header_idx = i
+            break
+    if header_idx is None:
+        return []
+
+    csv_text = "\n".join(lines[header_idx:])
+    reader = csv.DictReader(io.StringIO(csv_text), delimiter=";")
+    rows = list(reader)
+
+    result = []
+    for row in rows:
+        date_raw = (row.get("День") or "").strip()
+        if not date_raw or date_raw in ("Всего", "Итого", "Total"):
+            continue
+        date_val = _parse_date_str(date_raw)
+        if not date_val:
+            continue
+        ad_id = str(row.get("ID баннера") or "").strip()
+        if not ad_id:
+            continue
+        result.append({
+            "date": date_val,
+            "campaign_id": str(campaign_id),
+            "ad_id": ad_id,
+            "ad_name": str(row.get("Название") or "").strip(),
+            "views": _parse_num(row.get("Показы")) or 0.0,
+            "clicks": _parse_num(row.get("Клики")) or 0.0,
+            "money_spent": _parse_num(
+                row.get("Расход, ₽, с НДС") or row.get("Расход, ₽") or row.get("Расход")
+            ) or 0.0,
+        })
+    return result
+
+
 def _evict_stale_raw_cache(cache_dir: Path, date_from: str, date_to: str) -> None:
     """Удаляет raw_* файлы с датами, отличными от текущего запроса."""
     prefix = f"raw_{date_from}_{date_to}_"
@@ -570,19 +615,65 @@ def get_campaigns_daily_stat(
     return df.reindex(columns=CAMPAIGN_STAT_COLUMNS).reset_index(drop=True)
 
 
-def get_ads_daily_stat(date_from: str, date_to: str) -> pd.DataFrame:
+def get_ads_daily_stat(
+    date_from: str,
+    date_to: str,
+    raw_cache_dir: str | Path | None = None,
+) -> pd.DataFrame:
     """Статистика по рекламным объявлениям БЕЗ охватов в разбивке по дням.
 
     Параметры:
-        date_from — начало периода, YYYY-MM-DD
-        date_to   — конец периода,  YYYY-MM-DD
+        date_from     — начало периода, YYYY-MM-DD
+        date_to       — конец периода,  YYYY-MM-DD
+        raw_cache_dir — папка для кэша сырых CSV. Тот же кэш что у
+                        get_campaigns_daily_stat — при одинаковых датах API не вызывается.
 
     Возвращает DataFrame с колонками: date, campaign_id, ad_id, ad_name, views, clicks, money_spent
     """
-    raise NotImplementedError(
-        "Реализуется в Шаге 4. "
-        "Требует уточнения endpoint для статистики по объявлениям."
-    )
+    client = OzonPerformanceClient()
+    campaigns = client._fetch_all_campaigns()
+    if not campaigns:
+        return pd.DataFrame(columns=ADS_STAT_COLUMNS)
+
+    campaign_ids = [str(c["id"]) for c in campaigns if c.get("id") is not None]
+    days = _date_range(date_from, date_to)
+    all_rows: list[dict[str, Any]] = []
+
+    cache_dir = Path(raw_cache_dir) if raw_cache_dir else None
+    if cache_dir:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        _evict_stale_raw_cache(cache_dir, date_from, date_to)
+
+    batches = list(_chunks(campaign_ids, BATCH_SIZE))
+    total = len(days) * len(batches)
+    with tqdm(total=total, desc="get_ads_daily_stat") as pbar:
+        for day in days:
+            for batch in batches:
+                if cache_dir:
+                    cached = {
+                        cid: cache_dir / f"raw_{date_from}_{date_to}_{cid}_{day}.csv"
+                        for cid in batch
+                    }
+                    all_hit = all(f.exists() for f in cached.values())
+                else:
+                    all_hit = False
+
+                if all_hit:
+                    pairs = [(cf.read_bytes(), cid) for cid, cf in cached.items()]
+                else:
+                    uuid = client._submit_report(batch, day, day, group_by="DATE")
+                    client._poll_uuid(uuid)
+                    raw = client._download_report_bytes(uuid)
+                    pairs = _unpack_and_cache_report(raw, batch, day, date_from, date_to, cache_dir)
+
+                for csv_bytes, cid in pairs:
+                    all_rows.extend(_parse_ads_csv(csv_bytes, cid))
+                pbar.update(1)
+
+    if not all_rows:
+        return pd.DataFrame(columns=ADS_STAT_COLUMNS)
+    df = pd.DataFrame(all_rows)
+    return df.reindex(columns=ADS_STAT_COLUMNS).reset_index(drop=True)
 
 
 def get_reach_campaigns_daily_stat(
