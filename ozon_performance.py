@@ -445,6 +445,47 @@ def _parse_stat_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
     ]
 
 
+def _evict_stale_raw_cache(cache_dir: Path, date_from: str, date_to: str) -> None:
+    """Удаляет raw_* файлы с датами, отличными от текущего запроса."""
+    prefix = f"raw_{date_from}_{date_to}_"
+    for f in cache_dir.glob("raw_*"):
+        if not f.name.startswith(prefix):
+            f.unlink()
+
+
+def _unpack_and_cache_report(
+    raw: bytes,
+    batch: list[str],
+    day: str,
+    date_from: str,
+    date_to: str,
+    cache_dir: Path | None,
+) -> list[tuple[bytes, str]]:
+    """Распаковывает ZIP или одиночный CSV, кэширует отдельные CSV-файлы.
+
+    Возвращает список (csv_bytes, campaign_id).
+    ZIP: campaign_id берётся из имени файла внутри архива ({id}.csv).
+    CSV: campaign_id = batch[0].
+    """
+    result = []
+    if raw[:2] == b"PK":  # ZIP
+        with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+            for name in zf.namelist():
+                if not name.endswith(".csv"):
+                    continue
+                cid = name[:-4].split("_")[0]  # "{id}_{date}.csv" → campaign_id
+                csv_bytes = zf.read(name)
+                if cache_dir:
+                    (cache_dir / f"raw_{date_from}_{date_to}_{cid}_{day}.csv").write_bytes(csv_bytes)
+                result.append((csv_bytes, cid))
+    else:
+        cid = batch[0]
+        if cache_dir:
+            (cache_dir / f"raw_{date_from}_{date_to}_{cid}_{day}.csv").write_bytes(raw)
+        result.append((raw, cid))
+    return result
+
+
 # ── Публичные функции ─────────────────────────────────────────────────────────
 
 def get_campaign_dict() -> pd.DataFrame:
@@ -494,28 +535,32 @@ def get_campaigns_daily_stat(
     cache_dir = Path(raw_cache_dir) if raw_cache_dir else None
     if cache_dir:
         cache_dir.mkdir(parents=True, exist_ok=True)
+        _evict_stale_raw_cache(cache_dir, date_from, date_to)
 
-    total = len(days) * len(list(_chunks(campaign_ids, BATCH_SIZE)))
+    batches = list(_chunks(campaign_ids, BATCH_SIZE))
+    total = len(days) * len(batches)
     with tqdm(total=total, desc="get_campaigns_daily_stat") as pbar:
         for day in days:
-            for batch in _chunks(campaign_ids, BATCH_SIZE):
-                cache_file: Path | None = None
+            for batch in batches:
+                # Проверяем кэш: все ли CSV-файлы для батча уже есть
                 if cache_dir:
-                    key = hashlib.md5(f"{','.join(batch)}|{day}".encode()).hexdigest()
-                    cache_file = cache_dir / f"raw_{key}.bin"
+                    cached = {
+                        cid: cache_dir / f"raw_{date_from}_{date_to}_{cid}_{day}.csv"
+                        for cid in batch
+                    }
+                    all_hit = all(f.exists() for f in cached.values())
+                else:
+                    all_hit = False
 
-                if cache_file and cache_file.exists():
-                    raw = cache_file.read_bytes()
+                if all_hit:
+                    pairs = [(cf.read_bytes(), cid) for cid, cf in cached.items()]
                 else:
                     uuid = client._submit_report(batch, day, day, group_by="DATE")
                     client._poll_uuid(uuid)
                     raw = client._download_report_bytes(uuid)
-                    if cache_file:
-                        cache_file.write_bytes(raw)
+                    pairs = _unpack_and_cache_report(raw, batch, day, date_from, date_to, cache_dir)
 
-                csvs = client._extract_csvs(raw)
-                for i, csv_bytes in enumerate(csvs):
-                    cid = batch[i] if i < len(batch) else batch[0]
+                for csv_bytes, cid in pairs:
                     all_rows.extend(_parse_stat_csv(csv_bytes, cid))
                 pbar.update(1)
 

@@ -42,6 +42,7 @@
 │   └── test_{FUNCTION_NAME}.py  # один файл на функцию
 │
 └── raw_data/                 # CSV-результаты успешных вызовов всех публичных функций (в .gitignore)
+    ├── raw_files/            # сырые CSV до парсинга (кэш; raw_{date_from}_{date_to}_{campaign_id}_{day}.csv)
     └── .gitkeep
 ```
 

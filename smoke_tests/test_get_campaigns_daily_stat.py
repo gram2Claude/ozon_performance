@@ -16,7 +16,7 @@ from ozon_performance import get_campaigns_daily_stat, CAMPAIGN_STAT_COLUMNS  # 
 date_from = os.environ["TEST_START_DATE"]
 date_to = os.environ["TEST_END_DATE"]
 
-RAW_CACHE_DIR = PROJECT_ROOT / "raw_data"
+RAW_CACHE_DIR = PROJECT_ROOT / "raw_data" / "raw_files"
 
 print(f"Период: {date_from} — {date_to}")
 df = get_campaigns_daily_stat(date_from, date_to, raw_cache_dir=RAW_CACHE_DIR)
