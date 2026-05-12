@@ -33,6 +33,9 @@ Smoke-тесты (реальный API, требуют `.env`):
 python ozon_performance/smoke_tests/test_get_campaign_dict.py
 python ozon_performance/smoke_tests/test_get_campaigns_daily_stat.py
 python ozon_performance/smoke_tests/test_get_ads_daily_stat.py
+python ozon_performance/smoke_tests/test_get_reach_campaigns_daily_stat.py
+python ozon_performance/smoke_tests/test_get_reach_ads_daily_stat.py
+python ozon_performance/smoke_tests/test_get_video_ads_daily_stat.py
 ```
 
 Unit-тесты (моки):
@@ -58,11 +61,11 @@ pytest tests/
 | Функция | Тип | API endpoint |
 |---------|-----|--------------|
 | `get_campaign_dict()` | Справочник | `GET /api/client/campaign` |
-| `get_campaigns_daily_stat(date_from, date_to)` | Статистика | `POST /api/client/statistics` |
-| `get_ads_daily_stat(date_from, date_to)` | Статистика | уточнить |
+| `get_campaigns_daily_stat(date_from, date_to)` | Статистика | `POST /api/client/statistics` groupBy=DATE |
+| `get_ads_daily_stat(date_from, date_to)` | Статистика | `POST /api/client/statistics` groupBy=DATE |
 | `get_reach_campaigns_daily_stat(global_start_date, date_from, date_to)` | Охват | `POST /api/client/statistics` groupBy=NO_GROUP_BY |
-| `get_reach_ads_daily_stat(global_start_date, date_from, date_to)` | Охват | уточнить |
-| `get_video_ads_daily_stat(date_from, date_to)` | Статистика | уточнить (предположительно `/api/client/statistics/video`) |
+| `get_reach_ads_daily_stat(global_start_date, date_from, date_to)` | Охват | `POST /api/client/statistics` groupBy=NO_GROUP_BY |
+| `get_video_ads_daily_stat(date_from, date_to)` | Статистика | `POST /api/client/statistics` groupBy=DATE, только VIDEO_BANNER |
 
 **Семантика охвата:**
 `reach` — кумулятивный показатель (уникальные пользователи за период, нельзя суммировать по дням).
@@ -85,12 +88,10 @@ pytest tests/
 `ozon_performance.py` перенастраивает `sys.stdout/stderr` на UTF-8 при импорте.
 Не удалять — на Windows default cp1251 ломает вывод кириллицы.
 
-## Open Questions (уточнить реальными запросами)
+## Open Questions
 
-См. полный список в `info/00_api_methods.md` → раздел "Open Questions".
-Ключевые:
-1. Endpoint для видео-статистики (`get_video_ads_daily_stat`) — предположительно `/api/client/statistics/video`
-2. Endpoint для охвата на уровне объявлений (`get_reach_ads_daily_stat`)
+Все 6 функций реализованы. Открытых вопросов по endpoints нет.
+Актуальный список: `info/00_api_methods.md` → раздел "Open Questions".
 
 ## Структура файлов
 
