@@ -19,7 +19,9 @@
 НЕЛЬЗЯ суммировать ни по дням, ни по объявлениям, ни в каком виде.
 Для каждого дня D запрашивается [global_start_date, D] с groupBy=NO_GROUP_BY.
 Campaign-level reach берётся из строки «Всего» в CSV (API дедуплицирует уникальных пользователей).
-increment вычисляется локально: reach[D] - reach[D-1].» -->
+increment вычисляется локально: reach[D] - reach[D-1].
+В smoke-тесте: global_start_date = TEST_GLOBAL_START_DATE (не TEST_START_DATE!).
+Передача TEST_START_DATE даёт охват за 1 день вместо накопительного — числа будут неверные.» -->
 <!-- Удали эту строку если функция простая (нет особой семантики) -->
 
 ## Functional Requirements

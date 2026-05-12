@@ -41,6 +41,7 @@
 5. Запустить smoke-тест самостоятельно (не ждать команды пользователя):
    - Smoke-тест сохраняет DataFrame в `{MODULE_NAME}/raw_data/<имя_функции>[_{date_from}_{date_to}].csv`
    - Показать результат **из сохранённого CSV** (не из памяти): shape, columns, head(5).to_markdown(index=False)
+   - **[ОХВАТ]** параметр `global_start_date` брать из `TEST_GLOBAL_START_DATE`, НЕ из `TEST_START_DATE`
 
 ## Проверка
 

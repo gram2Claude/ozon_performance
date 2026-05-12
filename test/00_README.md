@@ -137,6 +137,10 @@ Claude определяет автоматически из документац
      не ждёт ручного запуска
    - Использует даты из `.env`: `TEST_START_DATE`, `TEST_END_DATE`,
      `TEST_GLOBAL_START_DATE` (для охватных функций)
+   - **ВАЖНО для охватных функций:** параметр `global_start_date` = `TEST_GLOBAL_START_DATE`,
+     НЕ `TEST_START_DATE`. Это разные переменные. `TEST_GLOBAL_START_DATE` — начало
+     накопительного периода (раньше `TEST_START_DATE`). Передача `TEST_START_DATE`
+     вместо `TEST_GLOBAL_START_DATE` даёт охват только за один день вместо накопительного.
    - Для функций с асинхронным API (submit→poll→download): передаёт
      `raw_cache_dir=PROJECT_ROOT / "raw_data" / "raw_files"` — сырые байты каждого отчёта
      сохраняются как `raw_data/raw_files/raw_{date_from}_{date_to}_{campaign_id}_{day}.csv`.
