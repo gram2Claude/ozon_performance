@@ -157,3 +157,57 @@ def get_ads_daily_stat(
 | Дата | Изменение | Причина |
 |------|-----------|---------|
 | 2026-05-11 | Первичная реализация | — |
+
+---
+
+## Функция: `get_reach_campaigns_daily_stat`
+
+- **Статус:** реализована
+- **Дата реализации:** 2026-05-12
+- **Тип:** охват (кумулятивный)
+- **Файл:** `ozon_performance/ozon_performance.py` → `get_reach_campaigns_daily_stat()`
+- **Spec:** `specs/04_spec_get_reach_campaigns_daily_stat.md`
+- **Plan:** `plans/04_plan_get_reach_campaigns_daily_stat.md`
+- **Smoke-test:** `ozon_performance/smoke_tests/test_get_reach_campaigns_daily_stat.py`
+
+### API-метод
+
+- **Endpoint:** `POST /api/client/statistics`
+- **Тип:** async (submit → poll → download)
+- **groupBy:** `NO_GROUP_BY`
+- **Формат ответа:** CSV (1 кампания) / ZIP→CSV (N кампаний)
+
+### Параметры функции (Python-сигнатура)
+
+```python
+def get_reach_campaigns_daily_stat(
+    global_start_date: str,           # YYYY-MM-DD — начало накопительного периода
+    date_from: str,                   # YYYY-MM-DD — первый день результата
+    date_to: str,                     # YYYY-MM-DD — последний день результата
+    raw_cache_dir: str | Path | None = None,
+) -> pd.DataFrame:
+```
+
+### Поля выходного DataFrame
+
+| Колонка | Тип pandas | Источник | Описание |
+|---------|-----------|----------|----------|
+| `date` | object (string YYYY-MM-DD) | параметр D цикла | Дата |
+| `campaign_id` | object (string) | из контекста батча | ID кампании |
+| `reach` | float64 | `Охват` из строки «Всего» CSV | Охват [global_start_date, D] |
+| `increment` | float64 | `reach.diff()` | Прирост охвата за день D |
+
+### Специфика / сложности реализации
+
+- **Один запрос на день:** для каждого D → `POST` с `dateFrom=global_start_date, dateTo=D, groupBy=NO_GROUP_BY`
+- **Reach нельзя суммировать** ни по объявлениям, ни по дням — пользователи пересекаются. Берём строку «Всего» в CSV (campaign-level, API дедуплицировал).
+- **Парсер `_parse_reach_csv`:** ищет заголовок по наличию `Охват`, берёт строку «Всего» → `totals_reach`. Fallback: единственная строка данных. Если строк > 1 без «Всего» — `None` + warning.
+- **Отдельный кэш:** ключ `reach_{global_start_date}_{cid}_{day}.csv` — не пересекается с кэшем функций 2/3.
+- **`_unpack_and_cache_report`** расширен параметром `prefix="raw"` (backward-compatible).
+- **increment для первого дня:** `fillna(reach)` — первый день инкремент = reach.
+
+### История изменений
+
+| Дата | Изменение | Причина |
+|------|-----------|---------|
+| 2026-05-12 | Первичная реализация | — |

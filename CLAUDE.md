@@ -124,3 +124,5 @@ ozon_performance/
 6. Smoke-тест → `ozon_performance/smoke_tests/test_имя.py`
 7. Показать `df.head(5).to_markdown(index=False)` + shape + columns
 8. Обновить `info/01_functions_implemented.md`
+
+**Smoke-тесты запускаются Claude самостоятельно** после реализации — без ожидания команды от пользователя.
