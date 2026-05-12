@@ -13,7 +13,7 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 from ozon_performance import get_reach_campaigns_daily_stat, CAMPAIGN_REACH_COLUMNS  # noqa: E402
 
-global_start = os.environ["TEST_START_DATE"]
+global_start = os.environ["TEST_GLOBAL_START_DATE"]
 date_from    = os.environ["TEST_START_DATE"]
 date_to      = os.environ["TEST_END_DATE"]
 
