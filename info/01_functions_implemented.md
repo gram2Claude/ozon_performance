@@ -267,3 +267,65 @@ def get_reach_ads_daily_stat(
 | Дата | Изменение | Причина |
 |------|-----------|---------|
 | 2026-05-12 | Первичная реализация | — |
+
+---
+
+## Функция: `get_video_ads_daily_stat`
+
+- **Статус:** реализована
+- **Дата реализации:** 2026-05-12
+- **Тип:** статистика (видео)
+- **Файл:** `ozon_performance/ozon_performance.py` → `get_video_ads_daily_stat()`
+- **Spec:** `specs/06_spec_get_video_ads_daily_stat.md`
+- **Plan:** `plans/06_plan_get_video_ads_daily_stat.md`
+- **Smoke-test:** `ozon_performance/smoke_tests/test_get_video_ads_daily_stat.py`
+
+### API-метод
+
+- **Endpoint:** `POST /api/client/statistics`
+- **Тип:** async (submit → poll → download)
+- **groupBy:** `DATE`
+- **Формат ответа:** CSV (1 кампания) / ZIP→CSV (N кампаний)
+
+### Параметры функции (Python-сигнатура)
+
+```python
+def get_video_ads_daily_stat(
+    date_from: str,                    # YYYY-MM-DD
+    date_to: str,                      # YYYY-MM-DD
+    raw_cache_dir: str | Path | None = None,
+) -> pd.DataFrame:
+```
+
+### Поля выходного DataFrame
+
+| Колонка | Тип pandas | Источник (поле CSV) | Описание |
+|---------|-----------|---------------------|----------|
+| `date` | object (string) | `День` (DD.MM.YYYY → YYYY-MM-DD) | Дата |
+| `campaign_id` | object (string) | передаётся в парсер (не из CSV) | ID кампании |
+| `ad_id` | object (string) | `ID баннера` | ID объявления |
+| `ad_name` | object (string) | `Название` | Название объявления |
+| `views` | float64 | `Показы` | Показы |
+| `viewable_views` | float64 | `Видимые показы` | Видимые показы |
+| `clicks` | float64 | `Клики` | Клики |
+| `quartile_25` | float64 | `Досмотры по квартилям 25%` | Досмотры 25% |
+| `quartile_50` | float64 | `Досмотры по квартилям 50%` | Досмотры 50% |
+| `quartile_75` | float64 | `Досмотры по квартилям 75%` | Досмотры 75% |
+| `quartile_100` | float64 | `Досмотры по квартилям 100%` | Досмотры 100% |
+| `views_with_sound` | float64 | `Просмотры со звуком` | Просмотры со звуком |
+| `money_spent` | float64 | `Расход, ₽` | Расход (без НДС) |
+
+### Специфика / сложности реализации
+
+- **Фильтр кампаний:** только `advObjectType == "VIDEO_BANNER"` (14 из 88 в аккаунте)
+- **Тот же endpoint** что функции 2/3 — `POST /api/client/statistics` с `groupBy=DATE`
+- **Общий кэш** с функциями 2/3: `raw_{date_from}_{date_to}_{cid}_{day}.csv`
+- **Парсер `_parse_video_ads_csv`:** одна строка на объявление × день; пропускает «Всего», «Корректировка», пустые ad_id
+- **`Расход, ₽`** — без НДС (у BANNER: `Расход, ₽, с НДС`)
+- **Нет `Платформа`** в CSV (в отличие от охватных функций)
+
+### История изменений
+
+| Дата | Изменение | Причина |
+|------|-----------|---------|
+| 2026-05-12 | Первичная реализация | — |
