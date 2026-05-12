@@ -793,7 +793,7 @@ def get_reach_campaigns_daily_stat(
 
                 for csv_bytes, cid in pairs:
                     reach = _parse_reach_csv(csv_bytes, cid)
-                    if reach is not None:
+                    if reach is not None and reach > 0:
                         all_rows.append({"date": day, "campaign_id": str(cid), "reach": reach})
                 pbar.update(1)
 
