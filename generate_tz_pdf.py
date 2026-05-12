@@ -142,10 +142,55 @@ P(
     "эквивалентный pandas DataFrame в Python-эталоне."
 )
 
-# 2. Принципы
-H1(f"2. Ключевые принципы работы с {API_NAME}")
+# 2. Общая логика
+H1("2. Общая логика работы библиотеки")
+P(
+    "Все функции статистики работают по одной схеме. "
+    "Ниже — последовательность шагов для get_campaigns_daily_stat, get_ads_daily_stat, get_video_ads_daily_stat."
+)
+BUL([
+    "1. Получить справочник кампаний. "
+    "GET /api/client/campaign возвращает все кампании аккаунта (88 штук). "
+    "Из каждой берём id (привести к строке) и advObjectType (BANNER / VIDEO_BANNER / ...).",
 
-H2("2.1. Авторизация")
+    "2. Сформировать список дат. "
+    "Из параметров date_from / date_to — массив отдельных дней (YYYY-MM-DD).",
+
+    "3. Разбить кампании на батчи. "
+    "API принимает максимум 10 кампаний за раз — делим список на группы по 10.",
+
+    "4. Для каждой пары (день, батч) — запросить статистику. "
+    "POST /api/client/statistics со списком ID и одним днём. "
+    "API не отдаёт данные сразу — возвращает UUID задачи.",
+
+    "5. Ждать готовности отчёта (polling). "
+    "Каждые 7 сек опрашиваем GET /api/client/statistics/{UUID}. "
+    "Когда state = OK — переходим к скачиванию.",
+
+    "6. Скачать и распаковать отчёт. "
+    "GET /api/client/statistics/report?UUID=... → CSV (1 кампания) или ZIP с CSV-файлами. "
+    "Распаковываем, привязываем каждый CSV к своей кампании по имени файла.",
+
+    "7. Распарсить CSV. "
+    "CSV содержит строки уровня объявления (одна строка = одно объявление x день). "
+    "get_campaigns_daily_stat: суммировать по (date, campaign_id). "
+    "get_ads_daily_stat / get_video_ads_daily_stat: оставить как есть. "
+    "get_reach_*: взять строку 'Всего' (campaign-level reach) или ad-level строки.",
+
+    "8. Собрать итоговый результат. "
+    "Все строки из всех дней и батчей объединить в один массив с фиксированными колонками.",
+])
+P(
+    "Для охват-функций (get_reach_campaigns_daily_stat, get_reach_ads_daily_stat) "
+    "логика немного отличается: для каждого дня D запрос делается за период "
+    "[global_start_date, D] (не один день), а из ответа берётся кумулятивный охват. "
+    "Дневной прирост (increment) вычисляется локально как разница между соседними днями."
+)
+
+# 3. Принципы
+H1(f"3. Ключевые принципы работы с {API_NAME}")
+
+H2("3.1. Авторизация")
 BUL([
     "OAuth 2.0, grant_type=client_credentials. "
     "POST /api/client/token с Content-Type: application/json. "
@@ -157,7 +202,7 @@ BUL([
     "Формат CLIENT_ID: 94252485-1777222314558@advertising.performance.ozon.ru",
 ])
 
-H2("2.2. Базовый URL и эндпоинты")
+H2("3.2. Базовый URL и эндпоинты")
 P("BASE_URL = https://api-performance.ozon.ru")
 TABLE(
     ["Метод", "Путь", "Назначение"],
@@ -171,7 +216,7 @@ TABLE(
     [18, 70, 92],
 )
 
-H2("2.3. Асинхронная схема получения отчётов (submit → poll → download)")
+H2("3.3. Асинхронная схема получения отчётов (submit → poll → download)")
 BUL([
     "POST /api/client/statistics → получить UUID задачи.",
     "Опрашивать GET /api/client/statistics/{UUID} каждые 7 сек (макс. 40 попыток ≈ 5 мин). "
@@ -181,7 +226,7 @@ BUL([
     "ZIP содержит по одному CSV на кампанию.",
 ])
 
-H2("2.4. Лимиты API — критичны")
+H2("3.4. Лимиты API — критичны")
 TABLE(
     ["Лимит", "Значение", "Как соблюдать"],
     [
@@ -194,7 +239,7 @@ TABLE(
     [60, 35, 85],
 )
 
-H2("2.5. Обработка ошибок и rate-limit")
+H2("3.5. Обработка ошибок и rate-limit")
 BUL([
     "HTTP 429 — exponential backoff: стартовая пауза 10 сек, удвоение, до 5 повторов. "
     "Уважать заголовок Retry-After если присутствует.",
@@ -204,7 +249,7 @@ BUL([
     "Ошибки HTTP / таймаут polling — не прерывать общий цикл. Логировать и продолжать.",
 ])
 
-H2("2.6. Подводные камни форматов данных")
+H2("3.6. Подводные камни форматов данных")
 BUL([
     'Числа в CSV — строки с запятой как десятичным разделителем: "25833,00" → 25833.0. '
     "parseNum($v): str_replace(',', '.', trim(str_replace(['\\xc2\\xa0',' '], '', $v))) → (float).",
@@ -219,7 +264,7 @@ BUL([
     "Envelope: ответ GET /api/client/campaign приходит как {\"list\": [...]}.",
 ])
 
-H2("2.7. Особый случай — кумулятивная метрика «reach» (охват)")
+H2("3.7. Особый случай — кумулятивная метрика «reach» (охват)")
 P(
     "reach — количество уникальных пользователей за период. "
     "Нельзя суммировать ни по дням, ни по объявлениям, ни по платформам."
@@ -231,10 +276,10 @@ P(
     "increment[D] = reach[D] - reach[D-1]; для первого дня = reach."
 )
 
-# 3. Функции
-H1("3. Публичные функции")
+# 4. Функции
+H1("4. Публичные функции")
 
-H2("3.1. get_campaign_dict()")
+H2("4.1. get_campaign_dict()")
 P("Справочник рекламных кампаний аккаунта.")
 P("HTTP: GET /api/client/campaign. Пагинации нет — весь список за один запрос.")
 TABLE(
@@ -246,7 +291,7 @@ TABLE(
     [40, 25, 115],
 )
 
-H2("3.2. get_campaigns_daily_stat(date_from, date_to)")
+H2("4.2. get_campaigns_daily_stat(date_from, date_to)")
 P("Статистика по кампаниям (без охватов) по дням. Гранулярность: campaign_id × date.")
 P(
     "HTTP: POST /api/client/statistics, groupBy=DATE, 1 день за запрос, батчи по 10. "
@@ -264,7 +309,7 @@ TABLE(
     [40, 25, 115],
 )
 
-H2("3.3. get_ads_daily_stat(date_from, date_to)")
+H2("4.3. get_ads_daily_stat(date_from, date_to)")
 P("Статистика по объявлениям (без охватов) по дням. Гранулярность: ad_id × date.")
 P("Тот же endpoint что 3.2. Агрегация не нужна — одна строка CSV = одна строка результата.")
 TABLE(
@@ -281,7 +326,7 @@ TABLE(
     [40, 25, 115],
 )
 
-H2("3.4. get_reach_campaigns_daily_stat(global_start_date, date_from, date_to)")
+H2("4.4. get_reach_campaigns_daily_stat(global_start_date, date_from, date_to)")
 P("Охват кампаний накопительным итогом по дням. Гранулярность: campaign_id × date.")
 P(
     "Для каждого дня D: POST /api/client/statistics с "
@@ -299,7 +344,7 @@ TABLE(
     [40, 25, 115],
 )
 
-H2("3.5. get_reach_ads_daily_stat(global_start_date, date_from, date_to)")
+H2("4.5. get_reach_ads_daily_stat(global_start_date, date_from, date_to)")
 P(
     "Охват объявлений накопительным итогом по дням. "
     "Гранулярность: ad_id × platform × date. "
@@ -320,7 +365,7 @@ TABLE(
     [40, 25, 115],
 )
 
-H2("3.6. get_video_ads_daily_stat(date_from, date_to)")
+H2("4.6. get_video_ads_daily_stat(date_from, date_to)")
 P(
     "Видео-статистика по объявлениям по дням. "
     "Только кампании advObjectType == 'VIDEO_BANNER'. "
@@ -350,8 +395,8 @@ TABLE(
     [40, 25, 115],
 )
 
-# 4. Алгоритм
-H1("4. Алгоритм сбора статистики")
+# 5. Алгоритм
+H1("5. Алгоритм сбора статистики")
 CODE("""\
 1. GET /api/client/campaign → массив кампаний.
    Для get_video_ads_daily_stat: фильтр advObjectType == "VIDEO_BANNER".
@@ -385,10 +430,10 @@ CODE("""\
    (или campaign_id+ad_id+platform для 3.5).\
 """)
 
-# 5. Примеры
-H1("5. Примеры запросов и ответов API")
+# 6. Примеры
+H1("6. Примеры запросов и ответов API")
 
-H2("5.1. Авторизация")
+H2("6.1. Авторизация")
 CODE("""\
 POST https://api-performance.ozon.ru/api/client/token
 Content-Type: application/json
@@ -399,7 +444,7 @@ Content-Type: application/json
 Ответ: {"access_token":"eyJhbGc...","expires_in":1800,"token_type":"Bearer"}\
 """)
 
-H2("5.2. Запрос отчёта (submit)")
+H2("6.2. Запрос отчёта (submit)")
 CODE("""\
 POST https://api-performance.ozon.ru/api/client/statistics
 Authorization: Bearer eyJhbGc...
@@ -410,7 +455,7 @@ Content-Type: application/json
 Ответ: {"UUID":"12f4dc10-5e37-4b5e-aadd-f9176f224dac","state":"NOT_STARTED",...}\
 """)
 
-H2("5.3. Опрос статуса")
+H2("6.3. Опрос статуса")
 CODE("""\
 GET https://api-performance.ozon.ru/api/client/statistics/12f4dc10-5e37-4b5e-aadd-f9176f224dac
 Authorization: Bearer eyJhbGc...
@@ -419,7 +464,7 @@ Authorization: Bearer eyJhbGc...
 Ответ (готов):    {"state":"OK","UUID":"12f4dc10-..."}\
 """)
 
-H2("5.4. Скачивание отчёта — формат CSV")
+H2("6.4. Скачивание отчёта — формат CSV")
 CODE("""\
 GET https://api-performance.ozon.ru/api/client/statistics/report?UUID=12f4dc10-...
 
@@ -437,10 +482,10 @@ GET https://api-performance.ozon.ru/api/client/statistics/report?UUID=12f4dc10-.
 skip строки "Всего" и "Корректировка".\
 """)
 
-# 6. Примеры таблиц
-H1("6. Примеры таблиц на выходе")
+# 7. Примеры таблиц
+H1("7. Примеры таблиц на выходе")
 
-H2("6.1. get_campaign_dict — справочник")
+H2("7.1. get_campaign_dict — справочник")
 TABLE(
     ["campaign_id", "campaign_name"],
     [
@@ -451,7 +496,7 @@ TABLE(
     [35, 145],
 )
 
-H2("6.2. get_campaigns_daily_stat — кампании × день")
+H2("7.2. get_campaigns_daily_stat — кампании × день")
 TABLE(
     ["date", "campaign_id", "views", "clicks", "money_spent"],
     [
@@ -462,7 +507,7 @@ TABLE(
     [26, 28, 24, 20, 32],
 )
 
-H2("6.3. get_ads_daily_stat — объявления × день")
+H2("7.3. get_ads_daily_stat — объявления × день")
 TABLE(
     ["date", "campaign_id", "ad_id", "ad_name", "views", "clicks", "money_spent"],
     [
@@ -473,7 +518,7 @@ TABLE(
     [26, 26, 22, 42, 22, 18, 24],
 )
 
-H2("6.4. get_reach_campaigns_daily_stat — охват кампаний × день")
+H2("7.4. get_reach_campaigns_daily_stat — охват кампаний × день")
 TABLE(
     ["date", "campaign_id", "reach", "increment"],
     [
@@ -484,7 +529,7 @@ TABLE(
     [26, 28, 35, 35],
 )
 
-H2("6.5. get_reach_ads_daily_stat — охват объявлений × платформа × день")
+H2("7.5. get_reach_ads_daily_stat — охват объявлений × платформа × день")
 TABLE(
     ["date", "campaign_id", "ad_id", "ad_name", "platform", "reach", "increment"],
     [
@@ -495,7 +540,7 @@ TABLE(
     [26, 26, 20, 38, 26, 20, 24],
 )
 
-H2("6.6. get_video_ads_daily_stat — видео × объявление × день")
+H2("7.6. get_video_ads_daily_stat — видео × объявление × день")
 TABLE(
     ["date", "campaign_id", "ad_id", "ad_name", "views", "v_views", "clicks",
      "q25", "q50", "q75", "q100", "snd", "money_spent"],
@@ -507,8 +552,8 @@ TABLE(
 )
 P("Примечание: VIDEO_BANNER кампании работали в Aug 2025. Для Apr 2026 данных нет — возвращается пустой массив.")
 
-# 7. Рекомендации
-H1(f"7. Рекомендации по реализации на {TARGET_LANG}")
+# 8. Рекомендации
+H1(f"8. Рекомендации по реализации на {TARGET_LANG}")
 BUL([
     "PHP >= 8.1. Composer-проект.",
     "HTTP-клиент: guzzlehttp/guzzle с retry-middleware для 429 (exponential backoff).",
@@ -539,8 +584,8 @@ TABLE(
     [80, 100],
 )
 
-# 8. Критерии приёмки
-H1("8. Критерии приёмки")
+# 9. Критерии приёмки
+H1("9. Критерии приёмки")
 BUL([
     "Все 6 функций возвращают данные с теми же колонками и в том же порядке, "
     "что в Python-эталоне ozon_performance.py.",

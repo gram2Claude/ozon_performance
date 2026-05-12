@@ -16,9 +16,52 @@
 
 ---
 
-## 2. Ключевые принципы работы с Ozon Performance API
+## 2. Общая логика работы библиотеки
 
-### 2.1. Авторизация
+Все функции статистики работают по одной схеме:
+
+1. **Получить справочник кампаний.**
+   Один запрос `GET /api/client/campaign` возвращает все кампании аккаунта (88 штук).
+   Из каждой берём `id` (привести к строке) и `advObjectType` (тип: BANNER / VIDEO_BANNER / ...).
+
+2. **Сформировать список дат.**
+   Из параметров `date_from` / `date_to` — массив отдельных дней (YYYY-MM-DD).
+
+3. **Разбить кампании на батчи.**
+   API принимает максимум 10 кампаний за раз → делим список на группы по 10.
+
+4. **Для каждой пары (день, батч) — запросить статистику.**
+   Отправляем `POST /api/client/statistics` со списком ID кампаний и одним днём.
+   API не отдаёт данные сразу — возвращает UUID задачи.
+
+5. **Ждать готовности отчёта (polling).**
+   Каждые 7 секунд опрашиваем `GET /api/client/statistics/{UUID}`.
+   Когда `state = OK` — переходим к скачиванию.
+
+6. **Скачать и распаковать отчёт.**
+   `GET /api/client/statistics/report?UUID=...` → CSV-файл или ZIP с CSV-файлами
+   (по одному на кампанию). Распаковываем, привязываем каждый CSV к своей кампании.
+
+7. **Распарсить CSV.**
+   CSV содержит строки уровня объявления (одна строка = одно объявление × день).
+   В зависимости от функции:
+   - `get_campaigns_daily_stat` — суммировать строки по (date, campaign_id)
+   - `get_ads_daily_stat` / `get_video_ads_daily_stat` — оставить как есть
+   - `get_reach_*` — взять строку «Всего» (охват) или строки объявлений
+
+8. **Собрать итоговый результат.**
+   Все строки из всех дней и батчей объединить в один массив с фиксированными колонками.
+
+**Для охват-функций** (`get_reach_campaigns_daily_stat`, `get_reach_ads_daily_stat`)
+логика немного отличается: для каждого дня D запрос делается за период
+`[global_start_date, D]` (не один день), а из ответа берётся кумулятивный охват.
+Дневной прирост (`increment`) вычисляется локально как разница между соседними днями.
+
+---
+
+## 3. Ключевые принципы работы с Ozon Performance API
+
+### 3.1. Авторизация
 
 - OAuth 2.0, `grant_type=client_credentials`.
   `POST https://api-performance.ozon.ru/api/client/token`
@@ -34,7 +77,7 @@
 - Учётные данные: переменные окружения `OZON_CLIENT_ID` / `OZON_CLIENT_SECRET`.
   Формат CLIENT_ID: `94252485-1777222314558@advertising.performance.ozon.ru`
 
-### 2.2. Базовый URL и используемые эндпоинты
+### 3.2. Базовый URL и используемые эндпоинты
 
 `BASE_URL = https://api-performance.ozon.ru`
 
@@ -46,7 +89,7 @@
 | GET | `/api/client/statistics/{UUID}` | Статус готовности отчёта |
 | GET | `/api/client/statistics/report` | Скачивание готового отчёта |
 
-### 2.3. Асинхронная схема получения отчётов (submit → poll → download)
+### 3.3. Асинхронная схема получения отчётов (submit → poll → download)
 
 Все методы статистики работают по схеме **submit → poll → download**:
 
@@ -58,7 +101,7 @@
    → ответ `text/csv` (1 кампания) или `application/zip` (2+ кампании).
    ZIP содержит по одному CSV на кампанию.
 
-### 2.4. Лимиты API — критичны, несоблюдение приводит к 429 / блокировке
+### 3.4. Лимиты API — критичны, несоблюдение приводит к 429 / блокировке
 
 | Лимит | Значение | Как соблюдать |
 |-------|----------|---------------|
@@ -68,7 +111,7 @@
 | Запросов в сутки на аккаунт | ≤ 100 000 | Общий лимит (включая токен) |
 | Интервал между submit'ами | ≥ 3 сек | Выдерживать паузу в коде |
 
-### 2.5. Обработка ошибок и rate-limit
+### 3.5. Обработка ошибок и rate-limit
 
 - **HTTP 429** — повторить с экспоненциальным backoff:
   стартовая пауза **10 сек**, удвоение, до **5 повторов**.
@@ -82,7 +125,7 @@
 - **Ошибки на уровне батча** (HTTP-ошибка / таймаут polling) —
   не прерывать общий цикл. Логировать и продолжать.
 
-### 2.6. Подводные камни форматов данных
+### 3.6. Подводные камни форматов данных
 
 - **Числа** в CSV приходят строками с **запятой** как десятичным разделителем:
   `"25833,00"` → `25833.0`; `"92502,60"` → `92502.6`.
@@ -101,7 +144,7 @@
 - **Envelope списка кампаний:** ответ `GET /api/client/campaign` приходит как
   `{"list": [...]}`. Если `list` отсутствует — проверить на bare array.
 
-### 2.7. Особый случай — кумулятивная метрика «reach» (охват)
+### 3.7. Особый случай — кумулятивная метрика «reach» (охват)
 
 `reach` — количество **уникальных пользователей** за период.
 **Нельзя суммировать ни по дням, ни по объявлениям, ни по платформам.**
@@ -119,9 +162,9 @@
 
 ---
 
-## 3. Публичные функции
+## 4. Публичные функции
 
-### 3.1. `get_campaign_dict()`
+### 4.1. `get_campaign_dict()`
 
 Справочник рекламных кампаний аккаунта.
 
@@ -136,7 +179,7 @@ HTTP: `GET /api/client/campaign`
 
 ---
 
-### 3.2. `get_campaigns_daily_stat(date_from, date_to)`
+### 4.2. `get_campaigns_daily_stat(date_from, date_to)`
 
 Статистика по рекламным кампаниям (без охватов) в разбивке по дням.
 
@@ -158,7 +201,7 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE`.
 
 ---
 
-### 3.3. `get_ads_daily_stat(date_from, date_to)`
+### 4.3. `get_ads_daily_stat(date_from, date_to)`
 
 Статистика по рекламным объявлениям (без охватов) в разбивке по дням.
 
@@ -181,7 +224,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 
 ---
 
-### 3.4. `get_reach_campaigns_daily_stat(global_start_date, date_from, date_to)`
+### 4.4. `get_reach_campaigns_daily_stat(global_start_date, date_from, date_to)`
 
 Охват рекламных кампаний накопительным итогом по дням.
 
@@ -203,7 +246,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 
 ---
 
-### 3.5. `get_reach_ads_daily_stat(global_start_date, date_from, date_to)`
+### 4.5. `get_reach_ads_daily_stat(global_start_date, date_from, date_to)`
 
 Охват рекламных объявлений накопительным итогом по дням.
 
@@ -228,7 +271,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 
 ---
 
-### 3.6. `get_video_ads_daily_stat(date_from, date_to)`
+### 4.6. `get_video_ads_daily_stat(date_from, date_to)`
 
 Видео-статистика по рекламным объявлениям по дням.
 Только кампании с `advObjectType == "VIDEO_BANNER"`.
@@ -259,7 +302,7 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint чт
 
 ---
 
-## 4. Алгоритм сбора статистики (общий шаблон)
+## 5. Алгоритм сбора статистики (общий шаблон)
 
 ```
 1. GET /api/client/campaign → массив кампаний.
@@ -299,9 +342,9 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint чт
 
 ---
 
-## 5. Примеры запросов и ответов API
+## 6. Примеры запросов и ответов API
 
-### 5.1. Авторизация
+### 6.1. Авторизация
 
 ```
 POST https://api-performance.ozon.ru/api/client/token
@@ -321,7 +364,7 @@ Content-Type: application/json
 }
 ```
 
-### 5.2. Запрос отчёта (submit)
+### 6.2. Запрос отчёта (submit)
 
 ```
 POST https://api-performance.ozon.ru/api/client/statistics
@@ -344,7 +387,7 @@ Content-Type: application/json
 }
 ```
 
-### 5.3. Опрос статуса
+### 6.3. Опрос статуса
 
 ```
 GET https://api-performance.ozon.ru/api/client/statistics/12f4dc10-5e37-4b5e-aadd-f9176f224dac
@@ -354,7 +397,7 @@ Authorization: Bearer eyJhbGc...
 Ответ (готов):     { "state": "OK",          "UUID": "12f4dc10-..." }
 ```
 
-### 5.4. Скачивание отчёта
+### 6.4. Скачивание отчёта
 
 ```
 GET https://api-performance.ozon.ru/api/client/statistics/report?UUID=12f4dc10-5e37-4b5e-aadd-f9176f224dac
@@ -378,9 +421,9 @@ Authorization: Bearer eyJhbGc...
 
 ---
 
-## 6. Примеры таблиц на выходе
+## 7. Примеры таблиц на выходе
 
-### 6.1. `get_campaign_dict` — справочник кампаний
+### 7.1. `get_campaign_dict` — справочник кампаний
 
 | campaign_id | campaign_name |
 |-------------|---------------|
@@ -388,7 +431,7 @@ Authorization: Bearer eyJhbGc...
 | 24992642 | igronik_5ka_00007442_ozon_ua_aon_reg_semya_cpm |
 | 24251481 | Кампания_Апрель_2026 |
 
-### 6.2. `get_campaigns_daily_stat` — кампании × день
+### 7.2. `get_campaigns_daily_stat` — кампании × день
 
 | date | campaign_id | views | clicks | money_spent |
 |------|-------------|-------|--------|-------------|
@@ -396,7 +439,7 @@ Authorization: Bearer eyJhbGc...
 | 2026-04-24 | 24296538 | 308342 | 166 | 92502.6 |
 | 2026-04-25 | 24251481 | 147441 | 90 | 44232.3 |
 
-### 6.3. `get_ads_daily_stat` — объявления × день
+### 7.3. `get_ads_daily_stat` — объявления × день
 
 | date | campaign_id | ad_id | ad_name | views | clicks | money_spent |
 |------|-------------|-------|---------|-------|--------|-------------|
@@ -404,7 +447,7 @@ Authorization: Bearer eyJhbGc...
 | 2026-04-24 | 24296538 | 602637 | Моб_Ржаной | 163272 | 89 | 48981.6 |
 | 2026-04-24 | 24251481 | 602761 | 21.04–27.04_Порошок | 86110 | 62 | 25833.0 |
 
-### 6.4. `get_reach_campaigns_daily_stat` — охват кампаний × день
+### 7.4. `get_reach_campaigns_daily_stat` — охват кампаний × день
 
 | date | campaign_id | reach | increment |
 |------|-------------|-------|-----------|
@@ -412,7 +455,7 @@ Authorization: Bearer eyJhbGc...
 | 2026-04-25 | 24251481 | 724007 | 101608 |
 | 2026-04-24 | 24296538 | 1232180 | 1232180 |
 
-### 6.5. `get_reach_ads_daily_stat` — охват объявлений × платформа × день
+### 7.5. `get_reach_ads_daily_stat` — охват объявлений × платформа × день
 
 | date | campaign_id | ad_id | ad_name | platform | reach | increment |
 |------|-------------|-------|---------|----------|-------|-----------|
@@ -420,7 +463,7 @@ Authorization: Bearer eyJhbGc...
 | 2026-04-24 | 24251481 | 598953 | 14.04–20.04_Сок | Мобильное приложение | 66757 | 66757 |
 | 2026-04-25 | 24251481 | 598953 | 14.04–20.04_Сок | Мобильное приложение | 66757 | 0 |
 
-### 6.6. `get_video_ads_daily_stat` — видео × объявление × день
+### 7.6. `get_video_ads_daily_stat` — видео × объявление × день
 
 | date | campaign_id | ad_id | ad_name | views | viewable_views | clicks | quartile_25 | quartile_50 | quartile_75 | quartile_100 | views_with_sound | money_spent |
 |------|-------------|-------|---------|-------|----------------|--------|-------------|-------------|-------------|--------------|------------------|-------------|
@@ -430,7 +473,7 @@ Authorization: Bearer eyJhbGc...
 
 ---
 
-## 7. Рекомендации по реализации на PHP
+## 8. Рекомендации по реализации на PHP
 
 - **Версия**: PHP ≥ 8.1. Composer-проект.
 - **HTTP-клиент**: `guzzlehttp/guzzle` с retry-middleware для 429.
@@ -480,7 +523,7 @@ Authorization: Bearer eyJhbGc...
 
 ---
 
-## 8. Критерии приёмки
+## 9. Критерии приёмки
 
 - [ ] Все 6 публичных функций возвращают данные с теми же колонками
       и в том же порядке, что в Python-эталоне `ozon_performance.py`.
