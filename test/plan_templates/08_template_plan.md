@@ -38,7 +38,9 @@
 2. Реализовать приватный метод `_fetch_{SPEC_ENTITY}_for_{SPEC_SCOPE}()`
 3. Реализовать публичную функцию `{SPEC_FUNCTION_NAME}()`
 4. Обновить docstring модуля
-5. Запустить smoke-тест самостоятельно (не ждать команды пользователя), показать результат: shape, columns, head(5).to_markdown()
+5. Запустить smoke-тест самостоятельно (не ждать команды пользователя):
+   - Smoke-тест сохраняет DataFrame в `{MODULE_NAME}/raw_data/<имя_функции>[_{date_from}_{date_to}].csv`
+   - Показать результат **из сохранённого CSV** (не из памяти): shape, columns, head(5).to_markdown(index=False)
 
 ## Проверка
 
