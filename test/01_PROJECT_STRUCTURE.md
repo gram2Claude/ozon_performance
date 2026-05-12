@@ -97,6 +97,13 @@ tqdm>=4.66.0
 ```
 
 ### `.env.example`
+
+**ВАЖНО:** имена переменных credentials — **без префикса модуля/API**:
+`CLIENT_ID` / `CLIENT_SECRET` для OAuth, `API_KEY` для статического ключа.
+НЕ использовать `OZON_CLIENT_ID`, `{MODULE_NAME}_CLIENT_ID`, `WB_API_KEY` и т.п.
+Каждый проект живёт в отдельном репозитории с собственным `.env` —
+дополнительный префикс избыточен и расходится с этим шаблоном.
+
 ```
 CLIENT_ID=...
 CLIENT_SECRET=...
@@ -108,7 +115,7 @@ TEST_GLOBAL_START_DATE=YYYY-MM-DD
 ```
 
 ### `.env`
-Создаётся автоматически (копия `.env.example`). Пользователь заполняет только `CLIENT_ID` и `CLIENT_SECRET`.
+Создаётся автоматически (копия `.env.example`). Пользователь заполняет только `CLIENT_ID` и `CLIENT_SECRET` (без префикса модуля — см. предупреждение выше).
 ```
 CLIENT_ID=...
 CLIENT_SECRET=...

@@ -32,12 +32,16 @@
 
 ### 2. Определить ENV_VAR по типу авторизации (Анкета A5)
 
-- **OAuth 2.0 (client_credentials):** `ENV_VAR_1 = {MODULE_NAME}_CLIENT_ID`, `ENV_VAR_2 = {MODULE_NAME}_CLIENT_SECRET`  
+- **OAuth 2.0 (client_credentials):** `ENV_VAR_1 = CLIENT_ID`, `ENV_VAR_2 = CLIENT_SECRET`  
   → две строки assert
-- **API key:** `ENV_VAR_1 = {MODULE_NAME}_API_KEY`  
+- **API key:** `ENV_VAR_1 = API_KEY`  
   → одна строка assert
 
-Имена переменных — UPPER_SNAKE_CASE с префиксом `MODULE_NAME`.
+**ВАЖНО:** имена переменных — без префикса модуля. Используем `CLIENT_ID`, а
+не `OZON_CLIENT_ID` / `{MODULE_NAME}_CLIENT_ID`. Каждый проект — отдельный
+`.env`, дополнительный префикс избыточен и расходится с шаблоном
+`01_PROJECT_STRUCTURE.md`. Если в анкете или в реализации появилось
+`{MODULE}_CLIENT_ID` — это баг, переименовать в `CLIENT_ID`.
 
 ### 3. Построить разделы notebook
 

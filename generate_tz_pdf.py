@@ -198,7 +198,7 @@ BUL([
     "Ответ: {access_token, expires_in: 1800, token_type: Bearer}.",
     "Заголовок всех запросов: Authorization: Bearer <access_token>.",
     "Токен обновлять за 60 сек до истечения (TOKEN_REFRESH_LEEWAY_SEC = 60).",
-    "Учётные данные: env OZON_CLIENT_ID / OZON_CLIENT_SECRET. "
+    "Учётные данные: env CLIENT_ID / CLIENT_SECRET. "
     "Формат CLIENT_ID: 94252485-1777222314558@advertising.performance.ozon.ru",
 ])
 

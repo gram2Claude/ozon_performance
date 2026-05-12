@@ -12,12 +12,18 @@ pip install -r ozon_performance/requirements-dev.txt
 
 Credentials in `ozon_performance/.env` (copy from `ozon_performance/.env.example`):
 ```
-OZON_CLIENT_ID=...
-OZON_CLIENT_SECRET=...
+CLIENT_ID=...
+CLIENT_SECRET=...
 TEST_GLOBAL_START_DATE=YYYY-MM-DD   # начало накопительного периода для reach-функций
 TEST_START_DATE=YYYY-MM-DD
 TEST_END_DATE=YYYY-MM-DD
 ```
+
+**Имена env-переменных credentials — без префикса модуля/API.** Используем
+`CLIENT_ID` / `CLIENT_SECRET` (OAuth) или `API_KEY` (статический ключ). Не
+`OZON_CLIENT_ID`, не `{MODULE}_CLIENT_ID` — правило из шаблона
+`test/01_PROJECT_STRUCTURE.md`. При генерации новых функций/демо/ТЗ держать
+эту конвенцию.
 
 **Важно:** в smoke-тестах reach-функций параметр `global_start_date` берётся из
 `TEST_GLOBAL_START_DATE` (НЕ из `TEST_START_DATE`). Передача `TEST_START_DATE`
@@ -43,10 +49,9 @@ python ozon_performance/smoke_tests/test_get_reach_ads_daily_stat.py
 python ozon_performance/smoke_tests/test_get_video_ads_daily_stat.py
 ```
 
-Unit-тесты (моки):
-```bash
-pytest tests/
-```
+Unit-тесты (моки): папка `tests/` зарезервирована, но сейчас пуста —
+верификация всех 6 функций идёт через `smoke_tests/` на реальном API.
+Когда появятся pytest-моки, запуск будет `pytest tests/`.
 
 Генерация ТЗ для внешнего разработчика (PHP):
 ```bash
@@ -134,10 +139,10 @@ info/                              # сводки API и реестр функц
 specs/                             # спецификации функций (NN_spec_имя.md)
   TZ_ozon_performance_PHP.md       # source-of-truth ТЗ для PHP-портирования
 plans/                             # планы реализации (NN_plan_имя.md)
-tests/                             # pytest unit-тесты (с моками)
+tests/                             # зарезервировано под pytest unit-тесты с моками (пока пусто)
 manual_forms/                      # заполненные вручную анкеты проекта
 auto_generated/                    # автогенерируемые файлы (шаблоны)
-test/                              # шаблоны для новых проектов (не тесты)
+test/                              # шаблоны для инициализации новых проектов (не тесты)
 
 ozon_performance/
   ozon_performance.py              # единственный файл библиотеки
@@ -149,8 +154,26 @@ ozon_performance/
     raw_files/                     # кэш сырых CSV от API (raw_*, reach_*)
 ```
 
-**Двойной folder `test/` vs `tests/`** — намеренно: `tests/` — pytest unit-тесты с моками;
-`test/` — шаблоны для инициализации новых проектов (не запускается pytest'ом).
+**Двойной folder `test/` vs `tests/`** — намеренно: `tests/` зарезервирована
+под pytest unit-тесты с моками (сейчас пуста); `test/` — шаблоны для
+инициализации **новых** проектов (не запускается pytest'ом).
+
+## Отношения с шаблонной системой (`test/`)
+
+Этот репозиторий — **готовый инстанс** шаблонного воркфлоу из `test/`
+(см. `test/00_README.md`, шаги 0–5: инициализация структуры → анкета
+проекта → сводка API → скаффолд → цикл реализации функций → ТЗ).
+Шаги 0–4 уже выполнены: все 6 функций реализованы, ТЗ сгенерировано.
+
+Когда пользователь говорит «инициализируй структуру», «сгенерируй демо»
+и т.п., **по умолчанию это про работу внутри текущего проекта**, а не про
+создание нового. Шаблоны из `test/` трогать только если пользователь явно
+просит изменить сам шаблон (для будущих проектов).
+
+Источники правды:
+- `info/00_api_methods.md` — сводка endpoints Ozon Performance (приоритет над интернетом)
+- `info/01_functions_implemented.md` — реестр реализованных функций
+- `specs/TZ_ozon_performance_PHP.md` — source-of-truth для PDF ТЗ
 
 ## Воркфлоу реализации функций
 

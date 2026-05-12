@@ -8,7 +8,7 @@
 - get_reach_ads_daily_stat(global_start_date, date_from, date_to)       — Охват объявлений накопительно по дням
 - get_video_ads_daily_stat(date_from, date_to)                           — Видео-статистика по объявлениям по дням
 
-Учётные данные читаются из переменных окружения OZON_CLIENT_ID и OZON_CLIENT_SECRET
+Учётные данные читаются из переменных окружения CLIENT_ID и CLIENT_SECRET
 (или передаются явно в OzonPerformanceClient).
 """
 
@@ -134,13 +134,13 @@ class OzonPerformanceClient:
         client_id: str | None = None,
         client_secret: str | None = None,
     ) -> None:
-        self._client_id = client_id or os.environ.get("OZON_CLIENT_ID")
-        self._client_secret = client_secret or os.environ.get("OZON_CLIENT_SECRET")
+        self._client_id = client_id or os.environ.get("CLIENT_ID")
+        self._client_secret = client_secret or os.environ.get("CLIENT_SECRET")
         if not self._client_id or not self._client_secret:
             raise RuntimeError(
                 "Учётные данные Ozon Performance не предоставлены. "
                 "Передайте client_id/client_secret или задайте "
-                "OZON_CLIENT_ID и OZON_CLIENT_SECRET."
+                "CLIENT_ID и CLIENT_SECRET."
             )
         self._token: str | None = None
         self._token_expires_at: float = 0.0

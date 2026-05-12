@@ -74,7 +74,7 @@
 - Заголовок всех запросов: `Authorization: Bearer <access_token>`.
 - Токен обновлять **заранее — за 60 сек до истечения** (`TOKEN_REFRESH_LEEWAY_SEC = 60`),
   иначе протухнет в середине длинного цикла.
-- Учётные данные: переменные окружения `OZON_CLIENT_ID` / `OZON_CLIENT_SECRET`.
+- Учётные данные: переменные окружения `CLIENT_ID` / `CLIENT_SECRET`.
   Формат CLIENT_ID: `94252485-1777222314558@advertising.performance.ozon.ru`
 
 ### 3.2. Базовый URL и используемые эндпоинты

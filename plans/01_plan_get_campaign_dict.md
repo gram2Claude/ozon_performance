@@ -14,7 +14,7 @@
 ## Порядок реализации
 
 1. Установить зависимости: `pip install -r requirements.txt`
-2. Запросить у пользователя `OZON_CLIENT_ID` и `OZON_CLIENT_SECRET` → вписать в `.env`
+2. Запросить у пользователя `CLIENT_ID` и `CLIENT_SECRET` → вписать в `.env`
 3. Запросить тестовые даты `TEST_START_DATE`, `TEST_END_DATE`, `TEST_GLOBAL_START_DATE` → вписать в `.env`
 4. Создать `smoke_tests/test_get_campaign_dict.py`
 5. Запустить smoke-тест
