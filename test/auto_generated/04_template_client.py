@@ -557,5 +557,6 @@ def {FUNCTION_CUMULATIVE_NAME}(
     df = pd.DataFrame(all_rows)
     df = df.sort_values(["{ENTITY_NAME}_id", "date"]).reset_index(drop=True)
     df["increment"] = df.groupby("{ENTITY_NAME}_id")["{CUMULATIVE_METRIC_NAME}"].diff()
+    df["increment"] = df["increment"].fillna(df["{CUMULATIVE_METRIC_NAME}"])  # первый день = значение метрики
     return df.reindex(columns={ENTITY_NAME_UPPER}_REACH_COLUMNS).reset_index(drop=True)
 # ── [/CUMULATIVE] ─────────────────────────────────────────────────────────────

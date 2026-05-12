@@ -133,7 +133,7 @@ def {SPEC_FUNCTION_NAME}(
 - [ ] [ASYNC] Клиент не превышает `MAX_CONCURRENT` одновременных задач
 - [ ] [ASYNC] Между submit-запросами выдерживается интервал ≥ `MIN_SUBMIT_INTERVAL_SEC` сек
 <!-- Для кумулятивного паттерна добавь:
-- [ ] Для первой даты в диапазоне `increment == NaN`
+- [ ] Для первой даты в диапазоне `increment == metric[t]` (fillna значением метрики; не NaN)
 - [ ] Для последующих дат `increment == metric[t] - metric[t-1]` в рамках одной сущности
 -->
 

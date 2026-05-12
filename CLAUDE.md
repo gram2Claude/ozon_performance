@@ -14,9 +14,14 @@ Credentials in `ozon_performance/.env` (copy from `ozon_performance/.env.example
 ```
 OZON_CLIENT_ID=...
 OZON_CLIENT_SECRET=...
+TEST_GLOBAL_START_DATE=YYYY-MM-DD   # начало накопительного периода для reach-функций
 TEST_START_DATE=YYYY-MM-DD
 TEST_END_DATE=YYYY-MM-DD
 ```
+
+**Важно:** в smoke-тестах reach-функций параметр `global_start_date` берётся из
+`TEST_GLOBAL_START_DATE` (НЕ из `TEST_START_DATE`). Передача `TEST_START_DATE`
+вместо `TEST_GLOBAL_START_DATE` даст охват за 1 день вместо накопительного — числа будут неверные.
 
 ## Запуск
 
@@ -42,6 +47,13 @@ Unit-тесты (моки):
 ```bash
 pytest tests/
 ```
+
+Генерация ТЗ для внешнего разработчика (PHP):
+```bash
+python generate_tz_pdf.py   # → TZ_ozon_performance_PHP.pdf в корне репо
+```
+Содержательный source-of-truth для PDF: `specs/TZ_ozon_performance_PHP.md`.
+При правках держать оба файла в синхроне.
 
 ## Архитектура
 
@@ -70,11 +82,23 @@ pytest tests/
 **Семантика охвата:**
 `reach` — кумулятивный показатель (уникальные пользователи за период, нельзя суммировать по дням).
 Для каждого дня D запрашивается период [global_start_date, D] с groupBy=NO_GROUP_BY.
-`increment` вычисляется локально через `groupby().diff()`.
+`increment` вычисляется локально через `groupby().diff()`, для первого дня — `fillna(reach)`
+(инвариант: `increment[D=date_from] == reach`, не NaN).
+
+- `get_reach_campaigns_daily_stat` — берёт строку «Всего» из CSV (campaign-level, API-дедуплицированный)
+- `get_reach_ads_daily_stat` — берёт ad-level строки (одна на платформу) и **суммирует reach по платформам**
+  через `groupby(["date", "campaign_id", "ad_id", "ad_name"])["reach"].sum()`. Поле `platform` в выходе отсутствует.
 
 **Порядок запросов статистики:**
 Статистика запрашивается по 1 дню за раз (dateFrom == dateTo), BATCH_SIZE кампаний на запрос.
 Охват — [global_start_date, D], groupBy=NO_GROUP_BY.
+
+**Кэш сырых CSV (`raw_data/raw_files/`):**
+- Префикс `raw_{date_from}_{date_to}_{cid}_{day}.csv` — статистика (groupBy=DATE),
+  разделяется между `get_campaigns_daily_stat` / `get_ads_daily_stat` / `get_video_ads_daily_stat`
+- Префикс `reach_{global_start_date}_{cid}_{day}.csv` — охват (groupBy=NO_GROUP_BY),
+  разделяется между `get_reach_campaigns_daily_stat` / `get_reach_ads_daily_stat`
+- При смене дат `_evict_stale_*_cache()` удаляет файлы с несоответствующим префиксом
 
 ## Лимиты API
 
@@ -83,10 +107,15 @@ pytest tests/
 - Макс. **1000 скачиваний** отчётов в сутки
 - Макс. **100 000 запросов** в сутки
 
-## Кодировка (Windows)
+## Кодировки
 
-`ozon_performance.py` перенастраивает `sys.stdout/stderr` на UTF-8 при импорте.
-Не удалять — на Windows default cp1251 ломает вывод кириллицы.
+Две разные кодировки в проекте — не путать:
+
+1. **Консоль (`sys.stdout/stderr`)** — UTF-8.
+   `ozon_performance.py` перенастраивает её при импорте; на Windows default cp1251 ломает вывод кириллицы.
+2. **CSV от Ozon API** — **cp1251**. Декодируется через `_decode_csv()` перед парсингом.
+   Результирующие CSV в `raw_data/` сохраняются с `encoding="cp1251", errors="replace"` —
+   без `errors="replace"` pandas молча пишет UTF-8, Excel на Windows открывает с кракозябрами.
 
 ## Open Questions
 
@@ -96,23 +125,32 @@ pytest tests/
 ## Структура файлов
 
 ```
-CLAUDE.md                    # этот файл
-info/                        # сводки API и реестр функций
-specs/                       # спецификации функций (NN_spec_имя.md)
-plans/                       # планы реализации (NN_plan_имя.md)
-tests/                       # pytest unit-тесты (с моками)
-manual_forms/                # заполненные вручную анкеты проекта
-auto_generated/              # автогенерируемые файлы (шаблоны)
-test/                        # шаблоны для новых проектов (не тесты)
+CLAUDE.md                          # этот файл
+generate_tz_pdf.py                 # генератор PDF ТЗ из шаблона
+TZ_ozon_performance_PHP.pdf        # результат генерации (артефакт)
+info/                              # сводки API и реестр функций
+  00_api_methods.md                # сводка endpoints
+  01_functions_implemented.md      # реестр реализованных функций
+specs/                             # спецификации функций (NN_spec_имя.md)
+  TZ_ozon_performance_PHP.md       # source-of-truth ТЗ для PHP-портирования
+plans/                             # планы реализации (NN_plan_имя.md)
+tests/                             # pytest unit-тесты (с моками)
+manual_forms/                      # заполненные вручную анкеты проекта
+auto_generated/                    # автогенерируемые файлы (шаблоны)
+test/                              # шаблоны для новых проектов (не тесты)
 
 ozon_performance/
-  ozon_performance.py        # единственный файл библиотеки
+  ozon_performance.py              # единственный файл библиотеки
   requirements.txt
   requirements-dev.txt
   .env / .env.example
-  smoke_tests/               # smoke-тесты (реальный API)
-  raw_data/                  # CSV-результаты; raw_data/raw_files/ — кэш сырых CSV
+  smoke_tests/                     # smoke-тесты (реальный API)
+  raw_data/                        # итоговые CSV-результаты функций
+    raw_files/                     # кэш сырых CSV от API (raw_*, reach_*)
 ```
+
+**Двойной folder `test/` vs `tests/`** — намеренно: `tests/` — pytest unit-тесты с моками;
+`test/` — шаблоны для инициализации новых проектов (не запускается pytest'ом).
 
 ## Воркфлоу реализации функций
 

@@ -282,7 +282,7 @@ HTTP: POST {SUBMIT_PATH_2} с groupBy={GROUP_BY_OBJECT}.
 | `{ENTITY_NAME}_id` | string | ID {ENTITY_NAME} |
 | `{ENTITY_NAME}_name` | string | Название |
 | `{CUMULATIVE_METRIC_NAME}` | float | Значение за период `[global_start_date, date]` |
-| `increment` | float | Прирост относительно предыдущей даты; `null` для первой даты |
+| `increment` | float | Прирост относительно предыдущей даты; для первой даты = `{CUMULATIVE_METRIC_NAME}` |
 <!-- [/CUMULATIVE] -->
 
 ---
@@ -423,8 +423,8 @@ Authorization: ...
 
 | date | {ENTITY_NAME}_id | {ENTITY_NAME}_name | {CUMULATIVE_METRIC_NAME} | increment |
 |------|------------------|--------------------|--------------------------|-----------|
-| {REACH_ROW_1} | | | | null |
-| {REACH_ROW_2} | | | | (число) |
+| {REACH_ROW_1} | | | (значение) | (= {CUMULATIVE_METRIC_NAME}, fillna) |
+| {REACH_ROW_2} | | | (значение) | (= {CUMULATIVE_METRIC_NAME}[D] − {CUMULATIVE_METRIC_NAME}[D−1]) |
 <!-- [/CUMULATIVE] -->
 
 <!-- Добавь таблицы для каждой дополнительной функции -->
@@ -478,7 +478,7 @@ Authorization: ...
 - [ ] Числа парсятся корректно (запятая → точка), даты приводятся к ISO YYYY-MM-DD.
 - [ ] При сбое любого батча процесс продолжает работать, ошибка попадает в лог.
 <!-- [CUMULATIVE] -->
-- [ ] Для первой даты диапазона `increment == null`.
+- [ ] Для первой даты диапазона `increment == {CUMULATIVE_METRIC_NAME}` (не null, fillna значением метрики).
 - [ ] Для последующих дат `increment == {CUMULATIVE_METRIC_NAME}[D] − {CUMULATIVE_METRIC_NAME}[D−1]`.
 <!-- [/CUMULATIVE] -->
 - [ ] README с примерами вызова + `.env.example`.

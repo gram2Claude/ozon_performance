@@ -147,12 +147,17 @@
 ### 3.7. Особый случай — кумулятивная метрика «reach» (охват)
 
 `reach` — количество **уникальных пользователей** за период.
-**Нельзя суммировать ни по дням, ни по объявлениям, ни по платформам.**
+**Нельзя суммировать по дням** — за это отвечает API через `groupBy=NO_GROUP_BY`
+и кумулятивный запрос `[global_start_date, D]`.
 
 Чтобы получить значение за день D:
 - Отправить запрос с `dateFrom=global_start_date`, `dateTo=D`, `groupBy=NO_GROUP_BY`.
-- Взять строку **«Всего»** из CSV → значение колонки `Охват`.
-  Эта строка содержит API-дедуплицированный охват на уровне кампании.
+- Для campaign-level (4.4) — взять строку **«Всего»** из CSV → колонка `Охват`
+  (API-дедуплицированный охват на уровне кампании).
+- Для ad-level (4.5) — взять ad-level строки CSV (одна строка на платформу)
+  и просуммировать `Охват` по платформам в рамках одного объявления.
+  Это допустимое упрощение — точная дедупликация на уровне (объявление × платформа)
+  API не возвращает.
 
 Дневной прирост вычисляется локально:
 `increment[D] = reach[D] − reach[D−1]` в рамках одного `campaign_id`.
@@ -242,7 +247,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 | `increment` | float | `reach[D] − reach[D−1]`; для первого дня = `reach` |
 
 Кэш CSV: `reach_{global_start_date}_{campaign_id}_{day}.csv` — не пересекается
-с кэшем функций 3.2/3.3.
+с кэшем функций 4.2/4.3 (статистика по дням использует префикс `raw_`).
 
 ---
 
@@ -252,7 +257,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 
 Гранулярность: одна строка на `ad_id × date`. Reach суммируется по всем платформам.
 
-Тот же запрос что 3.4 (`groupBy=NO_GROUP_BY`), тот же кэш.
+Тот же запрос что 4.4 (`groupBy=NO_GROUP_BY`), тот же кэш `reach_*.csv`.
 Отличие: брать ad-level строки CSV (НЕ строку «Всего»), затем суммировать reach по платформам.
 
 | Поле | Тип | Источник (колонка CSV) |
@@ -274,7 +279,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 Видео-статистика по рекламным объявлениям по дням.
 Только кампании с `advObjectType == "VIDEO_BANNER"`.
 
-HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint что 3.2/3.3).
+HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint что 4.2/4.3).
 Фильтрация кампаний до VIDEO_BANNER выполняется **до** отправки запросов.
 
 **Отличия от BANNER-кампаний:**
@@ -331,11 +336,12 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint чт
 
 5. Собрать все строки, привести к фиксированному набору колонок.
 
-Для охват-функций (3.4, 3.5):
+Для охват-функций (4.4, 4.5):
    Шаг 4c: groupBy=NO_GROUP_BY, dateFrom=global_start_date, dateTo=day.
    Кэш: reach_{global_start_date}_{campaign_id}_{day}.csv (отдельный namespace).
    Парсер: get_reach_campaigns — строка «Всего»; get_reach_ads — ad-level строки.
    После сбора: вычислить increment через diff по (campaign_id) или (campaign_id, ad_id).
+   Первый день: increment = reach (fillna).
 ```
 
 ---
