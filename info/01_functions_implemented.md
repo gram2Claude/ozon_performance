@@ -250,16 +250,15 @@ def get_reach_ads_daily_stat(
 | `campaign_id` | object (string) | из контекста батча | ID кампании |
 | `ad_id` | object (string) | `ID баннера` из CSV | ID объявления |
 | `ad_name` | object (string) | `Название` из CSV | Название объявления |
-| `platform` | object (string) | `Платформа` из CSV | Платформа показа |
-| `reach` | float64 | `Охват` из CSV | Охват [global_start_date, D] по объявлению × платформе |
+| `reach` | float64 | `Охват` из CSV, сумма по платформам | Охват [global_start_date, D] по объявлению |
 | `increment` | float64 | `reach.diff()` | Прирост охвата за день D |
 
 ### Специфика / сложности реализации
 
 - **Тот же endpoint и кэш** что `get_reach_campaigns_daily_stat` — файлы `reach_{global_start_date}_{cid}_{day}.csv` разделяются; API не вызывается повторно.
-- **Гранулярность:** одна строка = (ad_id, platform, date). Агрегация по платформам не выполняется — пользователи между платформами могут пересекаться.
+- **Агрегация по платформам:** одна строка = (ad_id, date). После парсинга `groupby(["date", "campaign_id", "ad_id", "ad_name"])["reach"].sum()`.
 - **Парсер `_parse_reach_ads_csv`:** берёт ad-level строки (не «Всего»), пропускает «Корректировка» и пустые ad_id.
-- **increment** по группе `(campaign_id, ad_id, platform)`.
+- **increment** по группе `(campaign_id, ad_id)`.
 - **Фильтр reach > 0** — строки с нулевым охватом не включаются.
 
 ### История изменений
@@ -267,6 +266,7 @@ def get_reach_ads_daily_stat(
 | Дата | Изменение | Причина |
 |------|-----------|---------|
 | 2026-05-12 | Первичная реализация | — |
+| 2026-05-12 | Убрано поле `platform`, reach суммируется по платформам | Упрощение структуры данных |
 
 ---
 

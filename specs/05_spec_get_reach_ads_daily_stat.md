@@ -29,7 +29,7 @@ def get_reach_ads_daily_stat(
 
 ## 3. Выходной DataFrame
 
-Колонки: `ADS_REACH_COLUMNS = ["date", "campaign_id", "ad_id", "ad_name", "platform", "reach", "increment"]`
+Колонки: `ADS_REACH_COLUMNS = ["date", "campaign_id", "ad_id", "ad_name", "reach", "increment"]`
 
 | Колонка | Тип pandas | Источник | Описание |
 |---------|-----------|----------|----------|
@@ -37,8 +37,7 @@ def get_reach_ads_daily_stat(
 | `campaign_id` | object (string) | из контекста батча | ID кампании |
 | `ad_id` | object (string) | `ID баннера` из CSV | ID объявления |
 | `ad_name` | object (string) | `Название` из CSV | Название объявления |
-| `platform` | object (string) | `Платформа` из CSV | Платформа показа |
-| `reach` | float64 | `Охват` из CSV | Охват [global_start_date, D] по объявлению × платформе |
+| `reach` | float64 | `Охват` из CSV, сумма по платформам | Охват [global_start_date, D] по объявлению |
 | `increment` | float64 | `reach.diff()` | Прирост охвата за день D |
 
 ---
@@ -60,10 +59,10 @@ ID баннера;Название;Платформа;Показы;Клики;CT
 
 ---
 
-## 5. Гранулярность по платформам
+## 5. Агрегация по платформам
 
-Агрегация не выполняется. Одна строка результата = одно объявление × одна платформа × один день.
-`increment` вычисляется по группе `(campaign_id, ad_id, platform)`.
+Reach суммируется по всем платформам. Одна строка результата = одно объявление × один день.
+`increment` вычисляется по группе `(campaign_id, ad_id)`.
 
 ---
 
@@ -76,13 +75,15 @@ ID баннера;Название;Платформа;Показы;Клики;CT
      - Проверить кэш: reach_{global_start_date}_{cid}_{D}.csv
        (тот же кэш что у get_reach_campaigns_daily_stat — файлы разделяются)
      - Если нет в кэше: submit → poll → download → сохранить
-     - Парсить: _parse_reach_ads_csv(csv_bytes, campaign_id) → list[{ad_id, ad_name, platform, reach}]
-Шаг 3. Собрать строки: {date: D, campaign_id, ad_id, ad_name, platform, reach}
-Шаг 4. Вычислить increment:
-   df.sort_values(["campaign_id", "ad_id", "platform", "date"])
-   df["increment"] = df.groupby(["campaign_id", "ad_id", "platform"])["reach"].diff()
+     - Парсить: _parse_reach_ads_csv(csv_bytes, campaign_id) → list[{ad_id, ad_name, reach}]
+Шаг 3. Собрать строки: {date: D, campaign_id, ad_id, ad_name, reach}
+Шаг 4. Суммировать по платформам:
+   df = df.groupby(["date", "campaign_id", "ad_id", "ad_name"], as_index=False)["reach"].sum()
+Шаг 5. Вычислить increment:
+   df.sort_values(["campaign_id", "ad_id", "date"])
+   df["increment"] = df.groupby(["campaign_id", "ad_id"])["reach"].diff()
    df["increment"] = df["increment"].fillna(df["reach"])
-Шаг 5. Вернуть df[ADS_REACH_COLUMNS]
+Шаг 6. Вернуть df[ADS_REACH_COLUMNS]
 ```
 
 ---
@@ -96,8 +97,8 @@ ID баннера;Название;Платформа;Показы;Клики;CT
 
 ## 8. Пример результата
 
-| date | campaign_id | ad_id | ad_name | platform | reach | increment |
-|------|-------------|-------|---------|----------|-------|-----------|
-| 2026-04-24 | 24296538 | 602634 | Моб_Белый | Мобильное приложение | 687355.0 | 687355.0 |
-| 2026-04-24 | 24296538 | 602634 | Моб_Белый | Десктоп | 1.0 | 1.0 |
-| 2026-04-25 | 24296538 | 602634 | Моб_Белый | Мобильное приложение | 801200.0 | 113845.0 |
+| date | campaign_id | ad_id | ad_name | reach | increment |
+|------|-------------|-------|---------|-------|-----------|
+| 2026-04-24 | 24251481 | 598953 | 14.04–20.04_Сок | 66758.0 | 66758.0 |
+| 2026-04-25 | 24251481 | 598953 | 14.04–20.04_Сок | 66758.0 | 0.0 |
+| 2026-04-24 | 24251481 | 598956 | 14.04–20.04_Туалетная | 87734.0 | 87734.0 |

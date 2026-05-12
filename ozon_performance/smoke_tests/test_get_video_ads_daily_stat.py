@@ -30,10 +30,10 @@ assert df["ad_id"].notna().all(), "Есть NaN в ad_id"
 print("\nВсе проверки пройдены.")
 
 out_path = PROJECT_ROOT / "raw_data" / f"get_video_ads_daily_stat_{date_from}_{date_to}.csv"
-df.to_csv(out_path, index=False, encoding="utf-8-sig")
+df.to_csv(out_path, index=False, encoding="cp1251", errors="replace")
 print(f"Сохранено: {out_path}")
 
-saved = pd.read_csv(out_path, encoding="utf-8-sig")
+saved = pd.read_csv(out_path, encoding="cp1251", errors="replace")
 print(f"\nshape: {saved.shape}")
 print(f"columns: {list(saved.columns)}")
 print(f"\nhead(5) из {out_path.name}:")

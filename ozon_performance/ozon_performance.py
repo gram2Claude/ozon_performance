@@ -99,7 +99,6 @@ ADS_REACH_COLUMNS = [
     "campaign_id",
     "ad_id",
     "ad_name",
-    "platform",
     "reach",
     "increment",
 ]
@@ -635,7 +634,6 @@ def _parse_reach_csv(data: bytes, campaign_id: str) -> float | None:
 def _parse_reach_ads_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
     """Парсит CSV groupBy=NO_GROUP_BY, возвращает ad-level строки с охватом.
 
-    Одна строка результата = (ad_id, platform). Агрегация не выполняется.
     Пропускает: «Всего», «Корректировка», строки без ad_id.
     """
     text = _decode_csv(data)
@@ -669,7 +667,6 @@ def _parse_reach_ads_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
             "campaign_id": str(campaign_id),
             "ad_id": ad_id,
             "ad_name": str(row.get("Название") or "").strip(),
-            "platform": str(row.get("Платформа") or "").strip(),
             "reach": reach,
         })
     return result
@@ -902,15 +899,15 @@ def get_reach_ads_daily_stat(
     date_to: str,
     raw_cache_dir: str | Path | None = None,
 ) -> pd.DataFrame:
-    """Охват по объявлениям накопительным итогом по дням с разбивкой по платформам.
+    """Охват по объявлениям накопительным итогом по дням.
 
     Для каждого дня D запрашивается [global_start_date, D] с groupBy=NO_GROUP_BY.
-    Одна строка = (ad_id, platform, date). Агрегация по платформам не выполняется.
-    increment = reach[D] - reach[D-1] по группе (campaign_id, ad_id, platform).
+    Reach суммируется по всем платформам: группировка по (date, campaign_id, ad_id).
+    increment = reach[D] - reach[D-1] по группе (campaign_id, ad_id).
 
     Кэш разделяется с get_reach_campaigns_daily_stat (те же файлы reach_*).
 
-    Возвращает DataFrame с колонками: date, campaign_id, ad_id, ad_name, platform, reach, increment
+    Возвращает DataFrame с колонками: date, campaign_id, ad_id, ad_name, reach, increment
     """
     client = OzonPerformanceClient()
     campaigns = client._fetch_all_campaigns()
@@ -963,8 +960,9 @@ def get_reach_ads_daily_stat(
         return pd.DataFrame(columns=ADS_REACH_COLUMNS)
 
     df = pd.DataFrame(all_rows)
-    df = df.sort_values(["campaign_id", "ad_id", "platform", "date"])
-    df["increment"] = df.groupby(["campaign_id", "ad_id", "platform"])["reach"].diff()
+    df = df.groupby(["date", "campaign_id", "ad_id", "ad_name"], as_index=False)["reach"].sum()
+    df = df.sort_values(["campaign_id", "ad_id", "date"])
+    df["increment"] = df.groupby(["campaign_id", "ad_id"])["reach"].diff()
     df["increment"] = df["increment"].fillna(df["reach"])
     return df.reindex(columns=ADS_REACH_COLUMNS).reset_index(drop=True)
 

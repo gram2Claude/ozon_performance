@@ -38,10 +38,10 @@ if len(neg):
 out_dir = PROJECT_ROOT / "raw_data"
 out_dir.mkdir(parents=True, exist_ok=True)
 out_path = out_dir / f"get_ads_daily_stat_{date_from}_{date_to}.csv"
-df.to_csv(out_path, index=False, encoding="utf-8-sig")
+df.to_csv(out_path, index=False, encoding="cp1251", errors="replace")
 print(f"\nСохранено: {out_path}")
 
-saved = pd.read_csv(out_path, encoding="utf-8-sig")
+saved = pd.read_csv(out_path, encoding="cp1251", errors="replace")
 print(f"\nHead(5) из сохранённого CSV:")
 print(saved.head(5).to_markdown(index=False))
 print("\nSMOKE TEST PASSED")
