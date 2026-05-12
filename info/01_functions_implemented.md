@@ -211,3 +211,59 @@ def get_reach_campaigns_daily_stat(
 | Дата | Изменение | Причина |
 |------|-----------|---------|
 | 2026-05-12 | Первичная реализация | — |
+
+---
+
+## Функция: `get_reach_ads_daily_stat`
+
+- **Статус:** реализована
+- **Дата реализации:** 2026-05-12
+- **Тип:** охват (кумулятивный, ad-level)
+- **Файл:** `ozon_performance/ozon_performance.py` → `get_reach_ads_daily_stat()`
+- **Spec:** `specs/05_spec_get_reach_ads_daily_stat.md`
+- **Plan:** `plans/05_plan_get_reach_ads_daily_stat.md`
+- **Smoke-test:** `ozon_performance/smoke_tests/test_get_reach_ads_daily_stat.py`
+
+### API-метод
+
+- **Endpoint:** `POST /api/client/statistics`
+- **Тип:** async (submit → poll → download)
+- **groupBy:** `NO_GROUP_BY`
+- **Формат ответа:** CSV (1 кампания) / ZIP→CSV (N кампаний)
+
+### Параметры функции (Python-сигнатура)
+
+```python
+def get_reach_ads_daily_stat(
+    global_start_date: str,           # YYYY-MM-DD — начало накопительного периода
+    date_from: str,                   # YYYY-MM-DD — первый день результата
+    date_to: str,                     # YYYY-MM-DD — последний день результата
+    raw_cache_dir: str | Path | None = None,
+) -> pd.DataFrame:
+```
+
+### Поля выходного DataFrame
+
+| Колонка | Тип pandas | Источник | Описание |
+|---------|-----------|----------|----------|
+| `date` | object (string YYYY-MM-DD) | параметр D цикла | Дата |
+| `campaign_id` | object (string) | из контекста батча | ID кампании |
+| `ad_id` | object (string) | `ID баннера` из CSV | ID объявления |
+| `ad_name` | object (string) | `Название` из CSV | Название объявления |
+| `platform` | object (string) | `Платформа` из CSV | Платформа показа |
+| `reach` | float64 | `Охват` из CSV | Охват [global_start_date, D] по объявлению × платформе |
+| `increment` | float64 | `reach.diff()` | Прирост охвата за день D |
+
+### Специфика / сложности реализации
+
+- **Тот же endpoint и кэш** что `get_reach_campaigns_daily_stat` — файлы `reach_{global_start_date}_{cid}_{day}.csv` разделяются; API не вызывается повторно.
+- **Гранулярность:** одна строка = (ad_id, platform, date). Агрегация по платформам не выполняется — пользователи между платформами могут пересекаться.
+- **Парсер `_parse_reach_ads_csv`:** берёт ad-level строки (не «Всего»), пропускает «Корректировка» и пустые ad_id.
+- **increment** по группе `(campaign_id, ad_id, platform)`.
+- **Фильтр reach > 0** — строки с нулевым охватом не включаются.
+
+### История изменений
+
+| Дата | Изменение | Причина |
+|------|-----------|---------|
+| 2026-05-12 | Первичная реализация | — |

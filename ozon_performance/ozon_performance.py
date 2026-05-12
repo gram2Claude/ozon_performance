@@ -99,6 +99,7 @@ ADS_REACH_COLUMNS = [
     "campaign_id",
     "ad_id",
     "ad_name",
+    "platform",
     "reach",
     "increment",
 ]
@@ -586,6 +587,49 @@ def _parse_reach_csv(data: bytes, campaign_id: str) -> float | None:
     return None
 
 
+def _parse_reach_ads_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
+    """Парсит CSV groupBy=NO_GROUP_BY, возвращает ad-level строки с охватом.
+
+    Одна строка результата = (ad_id, platform). Агрегация не выполняется.
+    Пропускает: «Всего», «Корректировка», строки без ad_id.
+    """
+    text = _decode_csv(data)
+    lines = text.splitlines()
+
+    header_idx = None
+    for i, line in enumerate(lines):
+        if "Охват" in line and not line.startswith(";"):
+            header_idx = i
+            break
+    if header_idx is None:
+        logger.warning("reach ads CSV [%s]: заголовок с 'Охват' не найден", campaign_id)
+        return []
+
+    csv_text = "\n".join(lines[header_idx:])
+    reader = csv.DictReader(io.StringIO(csv_text), delimiter=";")
+    rows = list(reader)
+
+    result = []
+    for row in rows:
+        first_val = str(next(iter(row.values()), "")).strip()
+        if first_val in ("Всего", "Итого", "Total", "Корректировка", ""):
+            continue
+        ad_id = str(row.get("ID баннера") or "").strip()
+        if not ad_id:
+            continue
+        reach = _parse_num(row.get("Охват"))
+        if reach is None:
+            continue
+        result.append({
+            "campaign_id": str(campaign_id),
+            "ad_id": ad_id,
+            "ad_name": str(row.get("Название") or "").strip(),
+            "platform": str(row.get("Платформа") or "").strip(),
+            "reach": reach,
+        })
+    return result
+
+
 # ── Публичные функции ─────────────────────────────────────────────────────────
 
 def get_campaign_dict() -> pd.DataFrame:
@@ -808,21 +852,76 @@ def get_reach_campaigns_daily_stat(
 
 
 def get_reach_ads_daily_stat(
-    global_start_date: str, date_from: str, date_to: str
+    global_start_date: str,
+    date_from: str,
+    date_to: str,
+    raw_cache_dir: str | Path | None = None,
 ) -> pd.DataFrame:
-    """Статистика по рекламным объявлениям c охватами накопительным итогом по дням.
+    """Охват по объявлениям накопительным итогом по дням с разбивкой по платформам.
 
-    Параметры:
-        global_start_date — начало накопительного периода, YYYY-MM-DD
-        date_from         — первый день диапазона, YYYY-MM-DD
-        date_to           — последний день диапазона, YYYY-MM-DD
+    Для каждого дня D запрашивается [global_start_date, D] с groupBy=NO_GROUP_BY.
+    Одна строка = (ad_id, platform, date). Агрегация по платформам не выполняется.
+    increment = reach[D] - reach[D-1] по группе (campaign_id, ad_id, platform).
 
-    Возвращает DataFrame с колонками: date, campaign_id, ad_id, ad_name, reach, increment
+    Кэш разделяется с get_reach_campaigns_daily_stat (те же файлы reach_*).
+
+    Возвращает DataFrame с колонками: date, campaign_id, ad_id, ad_name, platform, reach, increment
     """
-    raise NotImplementedError(
-        "Реализуется в Шаге 4. "
-        "Требует уточнения endpoint по объявлениям и поля reach."
-    )
+    client = OzonPerformanceClient()
+    campaigns = client._fetch_all_campaigns()
+    if not campaigns:
+        return pd.DataFrame(columns=ADS_REACH_COLUMNS)
+
+    campaign_ids = [str(c["id"]) for c in campaigns if c.get("id") is not None]
+    days = _date_range(date_from, date_to)
+    all_rows: list[dict[str, Any]] = []
+
+    cache_dir = Path(raw_cache_dir) if raw_cache_dir else None
+    if cache_dir:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        _evict_stale_reach_cache(cache_dir, global_start_date)
+
+    batches = list(_chunks(campaign_ids, BATCH_SIZE))
+    total = len(days) * len(batches)
+    with tqdm(total=total, desc="get_reach_ads_daily_stat") as pbar:
+        for day in days:
+            for batch in batches:
+                if cache_dir:
+                    cached = {
+                        cid: cache_dir / f"reach_{global_start_date}_{cid}_{day}.csv"
+                        for cid in batch
+                    }
+                    all_hit = all(f.exists() for f in cached.values())
+                else:
+                    all_hit = False
+
+                if all_hit:
+                    pairs = [(cf.read_bytes(), cid) for cid, cf in cached.items()]
+                else:
+                    uuid = client._submit_report(
+                        batch, global_start_date, day, group_by="NO_GROUP_BY"
+                    )
+                    client._poll_uuid(uuid)
+                    raw = client._download_report_bytes(uuid)
+                    pairs = _unpack_and_cache_report(
+                        raw, batch, day, global_start_date, day, cache_dir,
+                        prefix="reach",
+                    )
+
+                for csv_bytes, cid in pairs:
+                    for row in _parse_reach_ads_csv(csv_bytes, cid):
+                        if row["reach"] > 0:
+                            all_rows.append({"date": day, **row})
+                pbar.update(1)
+
+    if not all_rows:
+        return pd.DataFrame(columns=ADS_REACH_COLUMNS)
+
+    df = pd.DataFrame(all_rows)
+    df = df.sort_values(["campaign_id", "ad_id", "platform", "date"])
+    df["increment"] = df.groupby(["campaign_id", "ad_id", "platform"])["reach"].diff()
+    df["increment"] = df["increment"].fillna(df["reach"])
+    return df.reindex(columns=ADS_REACH_COLUMNS).reset_index(drop=True)
 
 
 def get_video_ads_daily_stat(date_from: str, date_to: str) -> pd.DataFrame:
