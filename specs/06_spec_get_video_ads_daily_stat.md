@@ -47,7 +47,7 @@ def get_video_ads_daily_stat(
 | 11 | `Досмотры по квартилям 75%` | `quartile_75` | float64 |
 | 12 | `Досмотры по квартилям 100%` | `quartile_100` | float64 |
 | 17 | `Просмотры со звуком` | `views_with_sound` | float64 |
-| 22 | `Расход, ₽` | `money_spent` | float64 |
+| 22 | `Расход, ₽` | `costs_nds` | float64 |
 
 Пропускаются: `CTR`, `Доля видимых показов`, `Доля досмотров *%`, `Заказы post-click/view`, `Выручка post-click/view`.
 
@@ -67,7 +67,7 @@ def get_video_ads_daily_stat(
 | `quartile_75` | float64 | `Досмотры по квартилям 75%` |
 | `quartile_100` | float64 | `Досмотры по квартилям 100%` |
 | `views_with_sound` | float64 | `Просмотры со звуком` |
-| `money_spent` | float64 | `Расход, ₽` (без НДС, в отличие от BANNER) |
+| `costs_nds` | float64 | `Расход, ₽` (без НДС, в отличие от BANNER) |
 
 ## Специфика
 
@@ -85,7 +85,7 @@ VIDEO_ADS_COLUMNS = [
     "date", "campaign_id", "ad_id", "ad_name",
     "views", "viewable_views", "clicks",
     "quartile_25", "quartile_50", "quartile_75", "quartile_100",
-    "views_with_sound", "money_spent",
+    "views_with_sound", "costs_nds",
 ]
 ```
 Совпадает с реальными колонками API — менять не нужно.

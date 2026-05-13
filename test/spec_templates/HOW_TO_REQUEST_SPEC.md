@@ -36,7 +36,7 @@
 ```
 Создай спецификацию для функции get_campaign_daily_stat.
 Это статистика по кампаниям — метрики по дням (date_from, date_to).
-Колонки: date, campaign_id, campaign_name, views, clicks, money_spent.
+Колонки: date, campaign_id, campaign_name, views, clicks, costs_nds.
 Используй шаблон spec_templates/07_template_spec.md.
 Сохрани в specs/02_spec_get_campaign_daily_stat.md
 ```
@@ -46,7 +46,7 @@
 ```
 Создай спецификацию для функции get_ads_daily_stat.
 Это статистика по объявлениям — метрики по дням с разбивкой по баннерам.
-Колонки: date, campaign_id, object_id, object_name, views, clicks, money_spent.
+Колонки: date, campaign_id, object_id, object_name, views, clicks, costs_nds.
 Используй шаблон spec_templates/07_template_spec.md.
 Сохрани в specs/03_spec_get_ads_daily_stat.md
 ```

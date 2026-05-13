@@ -26,9 +26,9 @@ assert list(df.columns) == CAMPAIGN_STAT_COLUMNS, f"Колонки не совп
 assert df["campaign_id"].notna().all(), "Есть NaN в campaign_id"
 assert pd.api.types.is_string_dtype(df["campaign_id"]), f"campaign_id не str: {df['campaign_id'].dtype}"
 if len(df) > 0:
-    neg = df["money_spent"].dropna().lt(0).sum()
+    neg = df["costs_nds"].dropna().lt(0).sum()
     if neg > 0:
-        print(f"[warn] {neg} строк с отрицательным money_spent (возможны возвраты бюджета)")
+        print(f"[warn] {neg} строк с отрицательным costs_nds (возможны возвраты бюджета)")
 
 print("\nВсе проверки пройдены.")
 
@@ -36,7 +36,7 @@ out_path = PROJECT_ROOT / "raw_data" / f"get_campaigns_daily_stat_{date_from}_{d
 df.to_csv(out_path, index=False, encoding="cp1251", errors="replace")
 print(f"Сохранено: {out_path}")
 
-saved = pd.read_csv(out_path, encoding="cp1251", errors="replace")
+saved = pd.read_csv(out_path, encoding="cp1251")
 print(f"\nshape: {saved.shape}")
 print(f"columns: {list(saved.columns)}")
 print(f"\nhead(5) из {out_path.name}:")

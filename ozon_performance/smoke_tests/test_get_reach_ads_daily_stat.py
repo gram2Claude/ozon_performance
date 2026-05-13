@@ -35,7 +35,7 @@ out_path = PROJECT_ROOT / "raw_data" / f"get_reach_ads_daily_stat_{date_from}_{d
 df.to_csv(out_path, index=False, encoding="cp1251", errors="replace")
 print(f"Сохранено: {out_path}")
 
-saved = pd.read_csv(out_path, encoding="cp1251", errors="replace")
+saved = pd.read_csv(out_path, encoding="cp1251")
 print(f"\nshape: {saved.shape}")
 print(f"columns: {list(saved.columns)}")
 print(f"\nhead(5) из {out_path.name}:")

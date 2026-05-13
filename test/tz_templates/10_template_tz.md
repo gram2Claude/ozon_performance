@@ -226,7 +226,17 @@ HTTP: `GET {ENTITY_LIST_PATH}`
 | `{ENTITY_NAME}_id` | string | `{ENTITY_ID_FIELD}` / `{ENTITY_ID_FIELD_ALT}` |
 | `{ENTITY_NAME}_name` | string | `{ENTITY_NAME_FIELD_1}` / `{ENTITY_NAME_FIELD_2}` |
 | `state` | string | `state` (`{STATE_RUNNING}` / `{STATE_FINISHED}` / ...) |
-<!-- Добавь строки для каждого поля справочника -->
+| `account_id` | integer | **константа** (значение `1` — пример, задаётся на стороне клиента) |
+| `source_type_id` | integer | **константа** (значение `9` — пример, задаётся на стороне клиента) |
+| `product_id` | integer | **константа** (значение `1` — пример, задаётся на стороне клиента) |
+| `product_name` | string | **константа** (значение `"prod_test"` — пример, задаётся на стороне клиента) |
+| `camp_type` | string | **константа** (значение `"camp_test"` — пример, задаётся на стороне клиента) |
+| `camp_category` | string | **константа** (значение `"cat_test"` — пример, задаётся на стороне клиента) |
+| `id_key_camp` | string | **вычисляется**: `account_id + "_" + {ENTITY_NAME}_id` (пример: `"1_25725956"`) |
+| `owner_id` | integer | **константа** (значение `1` — пример, задаётся на стороне клиента) |
+<!-- Добавь строки для дополнительных полей справочника -->
+
+> Константные поля (`account_id`, `source_type_id`, `product_id`, `product_name`, `camp_type`, `camp_category`, `owner_id`) и вычисляемое поле `id_key_camp` заполняются фиксированными значениями на стороне клиента — не из API. Конкретные значения приведены как пример и должны быть заменены на актуальные при интеграции.
 
 ---
 
@@ -252,7 +262,7 @@ HTTP: `GET {SYNC_DATA_PATH}` с `dateFrom` / `dateTo`. Данные из `{SYNC_
 | `{ENTITY_NAME}_name` | string | Название |
 | `views` | float | Показы |
 | `clicks` | float | Клики |
-| `money_spent` | float | Расход в рублях |
+| `costs_nds` | float | Расход в рублях |
 
 ---
 
@@ -404,16 +414,17 @@ Authorization: ...
 
 ### 7.1. {FUNCTION_1_NAME} — справочник
 
-| {ENTITY_NAME}_id | {ENTITY_NAME}_name | state | {DICT_EXTRA_COL_1} | ... |
-|------------------|--------------------|-------|---------------------|-----|
-| {DICT_ROW_1} | | | | |
-| {DICT_ROW_2} | | | | |
+| {ENTITY_NAME}_id | {ENTITY_NAME}_name | state | account_id | source_type_id | product_id | product_name | camp_type | camp_category | id_key_camp | owner_id |
+|------------------|--------------------|-------|-----------|----------------|------------|--------------|-----------|---------------|-------------|----------|
+| {DICT_ROW_1} | | | 1 | 9 | 1 | prod_test | camp_test | cat_test | 1_{DICT_ROW_1} | 1 |
+| {DICT_ROW_2} | | | 1 | 9 | 1 | prod_test | camp_test | cat_test | 1_{DICT_ROW_2} | 1 |
 
 <!-- Вставь 2–3 реальных строки из своего аккаунта (или обезличенные) -->
+> Константные поля заполняются примерными значениями — при интеграции заменить на актуальные.
 
 ### 7.2. {FUNCTION_2_NAME} — дневная статистика
 
-| date | {ENTITY_NAME}_id | {ENTITY_NAME}_name | views | clicks | money_spent |
+| date | {ENTITY_NAME}_id | {ENTITY_NAME}_name | views | clicks | costs_nds |
 |------|------------------|--------------------|-------|--------|-------------|
 | {STAT_ROW_1} | | | | | |
 | {STAT_ROW_2} | | | | | |

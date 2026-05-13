@@ -31,9 +31,9 @@ assert df["campaign_id"].notna().all(), "campaign_id содержит NaN"
 assert pd.api.types.is_string_dtype(df["ad_id"]), "ad_id должен быть string"
 assert df["ad_id"].notna().all(), "ad_id содержит NaN"
 
-neg = df[df["money_spent"] < 0]
+neg = df[df["costs_nds"] < 0]
 if len(neg):
-    print(f"WARNING: {len(neg)} строк с отрицательным money_spent (корректировки бюджета)")
+    print(f"WARNING: {len(neg)} строк с отрицательным costs_nds (корректировки бюджета)")
 
 out_dir = PROJECT_ROOT / "raw_data"
 out_dir.mkdir(parents=True, exist_ok=True)
@@ -41,7 +41,7 @@ out_path = out_dir / f"get_ads_daily_stat_{date_from}_{date_to}.csv"
 df.to_csv(out_path, index=False, encoding="cp1251", errors="replace")
 print(f"\nСохранено: {out_path}")
 
-saved = pd.read_csv(out_path, encoding="cp1251", errors="replace")
+saved = pd.read_csv(out_path, encoding="cp1251")
 print(f"\nHead(5) из сохранённого CSV:")
 print(saved.head(5).to_markdown(index=False))
 print("\nSMOKE TEST PASSED")

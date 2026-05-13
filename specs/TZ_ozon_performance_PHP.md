@@ -181,6 +181,16 @@ HTTP: `GET /api/client/campaign`
 |------|-----|-----------------------|
 | `campaign_id` | string | `id` (integer в JSON → string) |
 | `campaign_name` | string | `title` |
+| `account_id` | integer | **константа** (значение `1` — пример, задаётся на стороне клиента) |
+| `source_type_id` | integer | **константа** (значение `9` — пример, задаётся на стороне клиента) |
+| `product_id` | integer | **константа** (значение `1` — пример, задаётся на стороне клиента) |
+| `product_name` | string | **константа** (значение `"prod_test"` — пример, задаётся на стороне клиента) |
+| `camp_type` | string | **константа** (значение `"camp_test"` — пример, задаётся на стороне клиента) |
+| `camp_category` | string | **константа** (значение `"cat_test"` — пример, задаётся на стороне клиента) |
+| `id_key_camp` | string | **вычисляется**: `account_id + "_" + campaign_id` (пример: `"1_25725956"`) |
+| `owner_id` | integer | **константа** (значение `1` — пример, задаётся на стороне клиента) |
+
+> Константные поля (`account_id`, `source_type_id`, `product_id`, `product_name`, `camp_type`, `camp_category`, `owner_id`) и вычисляемое поле `id_key_camp` заполняются фиксированными значениями на стороне клиента — не из API. Конкретные значения приведены как пример и должны быть заменены на актуальные при интеграции.
 
 ---
 
@@ -202,7 +212,7 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE`.
 | `campaign_id` | string | из контекста батча (не из CSV) |
 | `views` | float | `Показы` |
 | `clicks` | float | `Клики` |
-| `money_spent` | float | `Расход, ₽, с НДС` |
+| `costs_nds` | float | `Расход, ₽, с НДС` |
 
 ---
 
@@ -223,7 +233,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 | `ad_name` | string | `Название` |
 | `views` | float | `Показы` |
 | `clicks` | float | `Клики` |
-| `money_spent` | float | `Расход, ₽, с НДС` |
+| `costs_nds` | float | `Расход, ₽, с НДС` |
 
 Пропускать: строки с пустым `ID баннера`, строки `Всего`, строки `Корректировка`.
 
@@ -301,7 +311,7 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint чт
 | `quartile_75` | float | `Досмотры по квартилям 75%` |
 | `quartile_100` | float | `Досмотры по квартилям 100%` |
 | `views_with_sound` | float | `Просмотры со звуком` |
-| `money_spent` | float | `Расход, ₽` |
+| `costs_nds` | float | `Расход, ₽` |
 
 ---
 
@@ -429,15 +439,17 @@ Authorization: Bearer eyJhbGc...
 
 ### 7.1. `get_campaign_dict` — справочник кампаний
 
-| campaign_id | campaign_name |
-|-------------|---------------|
-| 25725956 | Баннер 28.04.2026 |
-| 24992642 | igronik_5ka_00007442_ozon_ua_aon_reg_semya_cpm |
-| 24251481 | Кампания_Апрель_2026 |
+| campaign_id | campaign_name | account_id | source_type_id | product_id | product_name | camp_type | camp_category | id_key_camp | owner_id |
+|-------------|---------------|-----------|----------------|------------|--------------|-----------|---------------|-------------|----------|
+| 25725956 | Баннер 28.04.2026 | 1 | 9 | 1 | prod_test | camp_test | cat_test | 1_25725956 | 1 |
+| 24992642 | igronik_5ka_00007442_ozon_ua_aon_reg_semya_cpm | 1 | 9 | 1 | prod_test | camp_test | cat_test | 1_24992642 | 1 |
+| 24251481 | Кампания_Апрель_2026 | 1 | 9 | 1 | prod_test | camp_test | cat_test | 1_24251481 | 1 |
+
+> Константные поля заполняются примерными значениями — при интеграции заменить на актуальные.
 
 ### 7.2. `get_campaigns_daily_stat` — кампании × день
 
-| date | campaign_id | views | clicks | money_spent |
+| date | campaign_id | views | clicks | costs_nds |
 |------|-------------|-------|--------|-------------|
 | 2026-04-24 | 24251481 | 147660 | 107 | 44298.0 |
 | 2026-04-24 | 24296538 | 308342 | 166 | 92502.6 |
@@ -445,7 +457,7 @@ Authorization: Bearer eyJhbGc...
 
 ### 7.3. `get_ads_daily_stat` — объявления × день
 
-| date | campaign_id | ad_id | ad_name | views | clicks | money_spent |
+| date | campaign_id | ad_id | ad_name | views | clicks | costs_nds |
 |------|-------------|-------|---------|-------|--------|-------------|
 | 2026-04-24 | 24296538 | 602634 | Моб_Белый | 145070 | 77 | 43521.0 |
 | 2026-04-24 | 24296538 | 602637 | Моб_Ржаной | 163272 | 89 | 48981.6 |
@@ -469,7 +481,7 @@ Authorization: Bearer eyJhbGc...
 
 ### 7.6. `get_video_ads_daily_stat` — видео × объявление × день
 
-| date | campaign_id | ad_id | ad_name | views | viewable_views | clicks | quartile_25 | quartile_50 | quartile_75 | quartile_100 | views_with_sound | money_spent |
+| date | campaign_id | ad_id | ad_name | views | viewable_views | clicks | quartile_25 | quartile_50 | quartile_75 | quartile_100 | views_with_sound | costs_nds |
 |------|-------------|-------|---------|-------|----------------|--------|-------------|-------------|-------------|--------------|------------------|-------------|
 | 2025-08-05 | 16568770 | 401234 | OLV_Волга | 15420 | 12100 | 34 | 9800 | 7200 | 5100 | 3200 | 6800 | 18504.0 |
 

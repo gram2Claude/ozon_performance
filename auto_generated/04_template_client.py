@@ -64,7 +64,7 @@ TOKEN_REFRESH_LEEWAY_SEC = 60           # обновлять токен за 60 
 {ENTITY_NAME_UPPER}_STAT_COLUMNS = [
     "date",
     "{ENTITY_NAME}_id",
-    # Добавь метрики: views, clicks, money_spent и т.д.
+    # Добавь метрики: views, clicks, costs_nds и т.д.
 ]
 
 # Добавь константы колонок для каждой дополнительной функции:
@@ -339,7 +339,7 @@ class {CLASS_NAME}:
                                 # Добавь нужные метрики:
                                 "views": _parse_num(totals.get("views")),
                                 "clicks": _parse_num(totals.get("clicks")),
-                                "money_spent": _parse_num(totals.get("moneySpent")),
+                                "costs_nds": _parse_num(totals.get("moneySpent")),
                             })
                 except (requests.HTTPError, RuntimeError) as exc:
                     logger.warning(

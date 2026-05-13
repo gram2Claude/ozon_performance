@@ -82,7 +82,7 @@ CAMPAIGN_STAT_COLUMNS = [
     "campaign_id",
     "views",
     "clicks",
-    "money_spent",
+    "costs_nds",
 ]
 
 ADS_STAT_COLUMNS = [
@@ -92,7 +92,7 @@ ADS_STAT_COLUMNS = [
     "ad_name",
     "views",
     "clicks",
-    "money_spent",
+    "costs_nds",
 ]
 
 CAMPAIGN_REACH_COLUMNS = [
@@ -124,7 +124,7 @@ VIDEO_ADS_COLUMNS = [
     "quartile_75",
     "quartile_100",
     "views_with_sound",
-    "money_spent",
+    "costs_nds",
 ]
 
 
@@ -439,10 +439,10 @@ def _parse_stat_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
         if not date_val:
             continue
         if date_val not in daily:
-            daily[date_val] = {"views": 0.0, "clicks": 0.0, "money_spent": 0.0}
+            daily[date_val] = {"views": 0.0, "clicks": 0.0, "costs_nds": 0.0}
         daily[date_val]["views"] += _parse_num(row.get("Показы")) or 0
         daily[date_val]["clicks"] += _parse_num(row.get("Клики")) or 0
-        daily[date_val]["money_spent"] += _parse_num(
+        daily[date_val]["costs_nds"] += _parse_num(
             row.get("Расход, ₽, с НДС") or row.get("Расход, ₽") or row.get("Расход")
         ) or 0
 
@@ -490,7 +490,7 @@ def _parse_ads_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
             "ad_name": str(row.get("Название") or "").strip(),
             "views": _parse_num(row.get("Показы")) or 0.0,
             "clicks": _parse_num(row.get("Клики")) or 0.0,
-            "money_spent": _parse_num(
+            "costs_nds": _parse_num(
                 row.get("Расход, ₽, с НДС") or row.get("Расход, ₽") or row.get("Расход")
             ) or 0.0,
         })
@@ -538,7 +538,7 @@ def _parse_video_ads_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
             "quartile_75": _parse_num(row.get("Досмотры по квартилям 75%")) or 0.0,
             "quartile_100": _parse_num(row.get("Досмотры по квартилям 100%")) or 0.0,
             "views_with_sound": _parse_num(row.get("Просмотры со звуком")) or 0.0,
-            "money_spent": _parse_num(row.get("Расход, ₽")) or 0.0,
+            "costs_nds": _parse_num(row.get("Расход, ₽")) or 0.0,
         })
     return result
 
@@ -723,7 +723,7 @@ def get_campaigns_daily_stat(
         raw_cache_dir — папка для кэша сырых байт (ZIP/CSV). Если задана,
                         повторный запуск использует кэш вместо API-запросов.
 
-    Возвращает DataFrame с колонками: date, campaign_id, views, clicks, money_spent
+    Возвращает DataFrame с колонками: date, campaign_id, views, clicks, costs_nds
     """
     client = OzonPerformanceClient()
     campaigns = client._fetch_all_campaigns()
@@ -785,7 +785,7 @@ def get_ads_daily_stat(
         raw_cache_dir — папка для кэша сырых CSV. Тот же кэш что у
                         get_campaigns_daily_stat — при одинаковых датах API не вызывается.
 
-    Возвращает DataFrame с колонками: date, campaign_id, ad_id, ad_name, views, clicks, money_spent
+    Возвращает DataFrame с колонками: date, campaign_id, ad_id, ad_name, views, clicks, costs_nds
     """
     client = OzonPerformanceClient()
     campaigns = client._fetch_all_campaigns()
@@ -999,7 +999,7 @@ def get_video_ads_daily_stat(
         date, campaign_id, ad_id, ad_name,
         views, viewable_views, clicks,
         quartile_25, quartile_50, quartile_75, quartile_100,
-        views_with_sound, money_spent
+        views_with_sound, costs_nds
     """
     client = OzonPerformanceClient()
     campaigns = client._fetch_all_campaigns()

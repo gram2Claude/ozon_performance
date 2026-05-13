@@ -290,11 +290,21 @@ P("HTTP: GET /api/client/campaign. Пагинации нет — весь спи
 TABLE(
     ["Поле", "Тип", "Источник (ключ API)"],
     [
-        ["campaign_id", "string", "id (integer в JSON → string)"],
-        ["campaign_name", "string", "title"],
+        ["campaign_id",   "string",  "id (integer в JSON → string)"],
+        ["campaign_name", "string",  "title"],
+        ["account_id",    "integer", "константа (значение 1 — пример, задаётся на стороне клиента)"],
+        ["source_type_id","integer", "константа (значение 9 — пример, задаётся на стороне клиента)"],
+        ["product_id",    "integer", "константа (значение 1 — пример, задаётся на стороне клиента)"],
+        ["product_name",  "string",  "константа (значение \"prod_test\" — пример, задаётся на стороне клиента)"],
+        ["camp_type",     "string",  "константа (значение \"camp_test\" — пример, задаётся на стороне клиента)"],
+        ["camp_category", "string",  "константа (значение \"cat_test\" — пример, задаётся на стороне клиента)"],
+        ["id_key_camp",   "string",  "вычисляется: account_id + \"_\" + campaign_id (пример: \"1_25725956\")"],
+        ["owner_id",      "integer", "константа (значение 1 — пример, задаётся на стороне клиента)"],
     ],
     [40, 25, 115],
 )
+P("Константные поля и id_key_camp заполняются на стороне клиента — не из API. "
+  "Конкретные значения приведены как пример и должны быть заменены на актуальные при интеграции.")
 
 H2("4.2. get_campaigns_daily_stat(date_from, date_to)")
 P("Статистика по кампаниям (без охватов) по дням. Гранулярность: campaign_id × date.")
@@ -309,7 +319,7 @@ TABLE(
         ["campaign_id", "string", "из контекста батча (не из CSV)"],
         ["views", "float", "Показы"],
         ["clicks", "float", "Клики"],
-        ["money_spent", "float", "Расход, ₽, с НДС"],
+        ["costs_nds", "float", "Расход, ₽, с НДС"],
     ],
     [40, 25, 115],
 )
@@ -326,7 +336,7 @@ TABLE(
         ["ad_name", "string", "Название"],
         ["views", "float", "Показы"],
         ["clicks", "float", "Клики"],
-        ["money_spent", "float", "Расход, ₽, с НДС"],
+        ["costs_nds", "float", "Расход, ₽, с НДС"],
     ],
     [40, 25, 115],
 )
@@ -396,7 +406,7 @@ TABLE(
         ["quartile_75", "float", "Досмотры по квартилям 75%"],
         ["quartile_100", "float", "Досмотры по квартилям 100%"],
         ["views_with_sound", "float", "Просмотры со звуком"],
-        ["money_spent", "float", "Расход, ₽ (без НДС)"],
+        ["costs_nds", "float", "Расход, ₽ (без НДС)"],
     ],
     [40, 25, 115],
 )
@@ -502,10 +512,21 @@ TABLE(
     ],
     [35, 145],
 )
+P("Константные и вычисляемые поля для тех же трёх строк:")
+TABLE(
+    ["campaign_id", "account_id", "source_type_id", "product_id", "product_name", "camp_type", "camp_category", "id_key_camp", "owner_id"],
+    [
+        ["25725956", "1", "9", "1", "prod_test", "camp_test", "cat_test", "1_25725956", "1"],
+        ["24992642", "1", "9", "1", "prod_test", "camp_test", "cat_test", "1_24992642", "1"],
+        ["24251481", "1", "9", "1", "prod_test", "camp_test", "cat_test", "1_24251481", "1"],
+    ],
+    [22, 20, 24, 20, 22, 20, 22, 24, 18],
+)
+P("Значения константных полей приведены как пример — при интеграции заменить на актуальные.")
 
 H2("7.2. get_campaigns_daily_stat — кампании × день")
 TABLE(
-    ["date", "campaign_id", "views", "clicks", "money_spent"],
+    ["date", "campaign_id", "views", "clicks", "costs_nds"],
     [
         ["2026-04-24", "24251481", "147660", "107", "44298.0"],
         ["2026-04-24", "24296538", "308342", "166", "92502.6"],
@@ -516,7 +537,7 @@ TABLE(
 
 H2("7.3. get_ads_daily_stat — объявления × день")
 TABLE(
-    ["date", "campaign_id", "ad_id", "ad_name", "views", "clicks", "money_spent"],
+    ["date", "campaign_id", "ad_id", "ad_name", "views", "clicks", "costs_nds"],
     [
         ["2026-04-24", "24296538", "602634", "Моб_Белый",  "145070", "77", "43521.0"],
         ["2026-04-24", "24296538", "602637", "Моб_Ржаной", "163272", "89", "48981.6"],
@@ -550,7 +571,7 @@ TABLE(
 H2("7.6. get_video_ads_daily_stat — видео × объявление × день")
 TABLE(
     ["date", "campaign_id", "ad_id", "ad_name", "views", "v_views", "clicks",
-     "q25", "q50", "q75", "q100", "snd", "money_spent"],
+     "q25", "q50", "q75", "q100", "snd", "costs_nds"],
     [
         ["2025-08-05", "16568770", "401234", "OLV_Волга",
          "15420", "12100", "34", "9800", "7200", "5100", "3200", "6800", "18504.0"],

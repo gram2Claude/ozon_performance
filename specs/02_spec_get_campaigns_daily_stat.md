@@ -47,7 +47,7 @@ def get_campaigns_daily_stat(
 | `campaign_id` | string | имя CSV-файла или колонка в CSV | ID кампании |
 | `views` | Int64 | `Показы` | Показы рекламы |
 | `clicks` | Int64 | `Клики` | Клики по рекламе |
-| `money_spent` | float | `Расход` | Расход в рублях |
+| `costs_nds` | float | `Расход` | Расход в рублях |
 
 > ⚠️ Точные имена колонок CSV — уточнить первым реальным запросом. Разделитель `,` подтверждён. Источник `campaign_id` (имя файла ZIP или колонка) — определить при первом скачивании.
 
@@ -81,10 +81,10 @@ def get_campaigns_daily_stat(
 
 ## Acceptance Criteria
 
-- [ ] `get_campaigns_daily_stat("2026-04-24", "2026-04-25")` возвращает DataFrame с колонками `["date", "campaign_id", "views", "clicks", "money_spent"]`
+- [ ] `get_campaigns_daily_stat("2026-04-24", "2026-04-25")` возвращает DataFrame с колонками `["date", "campaign_id", "views", "clicks", "costs_nds"]`
 - [ ] Одна строка на кампанию × день (только кампании с ненулевой активностью)
 - [ ] `date` в формате `YYYY-MM-DD`
-- [ ] `money_spent >= 0` для всех строк
+- [ ] `costs_nds >= 0` для всех строк
 - [ ] `campaign_id` — string без NaN
 - [ ] При отсутствии данных — пустой DataFrame с правильными колонками
 - [ ] Не превышается `MAX_CONCURRENT` одновременных UUID
