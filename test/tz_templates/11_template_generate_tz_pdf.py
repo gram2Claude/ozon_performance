@@ -321,16 +321,21 @@ TABLE(
     ],
     [16, 16, 32, 14, 12, 20, 22, 10, 20, 18],
 )
-P("Константные и вычисляемые поля для тех же строк:")
+# ВАЖНО про split-pattern: REPLACE_ENTITY_id и ad_id — это API-поля, они НЕ
+# являются ни константными, ни вычисляемыми. Не включать их в доп. таблицы
+# «Вычисляемые поля» / «Константные поля» — там должны быть ТОЛЬКО эти типы
+# полей. Для сопоставления строк между таблицами полагаемся на порядок строк
+# (явно указывать в подписи: «для тех же N строк в том же порядке»).
+P("Константные поля account_id, source_type_id и вычисляемое id_key_camp (для тех же 2 строк в том же порядке):")
 TABLE(
-    ["REPLACE_ENTITY_id", "account_id", "source_type_id", "id_key_camp"],
+    ["account_id", "source_type_id", "id_key_camp"],
     [
-        ["REPLACE_ID", "1", "9", "1_REPLACE_ID"],
-        ["REPLACE_ID", "1", "9", "1_REPLACE_ID"],
+        ["1", "9", "1_REPLACE_ID"],
+        ["1", "9", "1_REPLACE_ID"],
     ],
-    [40, 28, 34, 78],
+    [26, 32, 62],
 )
-P("Значения константных полей приведены как пример — при интеграции заменить на актуальные.")
+P("Значения account_id и source_type_id приведены как пример — при интеграции заменить на актуальные.")
 
 # Добавь TABLE для каждой дополнительной функции.
 # Шаблон для ad-level stat-функции (добавляет id_key_ad):
@@ -340,19 +345,19 @@ P("Значения константных полей приведены как 
 #     [["REPLACE_DATE", "REPLACE_ID", "REPLACE_AD_ID", "REPLACE_AD_NAME", "REPLACE_V", "REPLACE_C", "REPLACE_M"]],
 #     [22, 24, 20, 40, 18, 14, 26],
 # )
-# P("Вычисляемые поля для тех же строк:")
+# P("Вычисляемые поля (для тех же N строк в том же порядке):")
 # TABLE(
-#     ["ad_id", "costs_without_nds", "ak", "costs_nds_ak", "costs_without_nds_ak"],
-#     [["REPLACE_AD_ID", "REPLACE_M_NO_NDS", "0.5", "REPLACE_M_AK", "REPLACE_M_NO_NDS_AK"]],
-#     [22, 30, 12, 28, 30],
+#     ["costs_without_nds", "ak", "costs_nds_ak", "costs_without_nds_ak"],
+#     [["REPLACE_M_NO_NDS", "0.5", "REPLACE_M_AK", "REPLACE_M_NO_NDS_AK"]],
+#     [36, 14, 32, 38],
 # )
-# P("Константные и вычисляемые ключи для тех же строк:")
+# P("Константные поля account_id, source_type_id и вычисляемые ключи id_key_camp, id_key_ad (для тех же N строк):")
 # TABLE(
-#     ["REPLACE_ENTITY_id", "ad_id", "account_id", "source_type_id", "id_key_camp", "id_key_ad"],
-#     [["REPLACE_ID", "REPLACE_AD_ID", "1", "9", "1_REPLACE_ID", "1_REPLACE_ID_REPLACE_AD_ID"]],
-#     [24, 20, 18, 22, 30, 38],
+#     ["account_id", "source_type_id", "id_key_camp", "id_key_ad"],
+#     [["1", "9", "1_REPLACE_ID", "1_REPLACE_ID_REPLACE_AD_ID"]],
+#     [22, 28, 34, 42],
 # )
-# P("Значения константных полей приведены как пример — при интеграции заменить на актуальные.")
+# P("Значения account_id и source_type_id приведены как пример — при интеграции заменить на актуальные.")
 #
 # Шаблон для кумулятивной (reach) функции:
 # H2("7.X. REPLACE_CUMULATIVE_NAME — кумулятивная метрика")
@@ -361,13 +366,13 @@ P("Значения константных полей приведены как 
 #     [["REPLACE_DATE", "REPLACE_ID", "REPLACE_NAME", "REPLACE_VAL", "REPLACE_INC"]],
 #     [22, 26, 50, 28, 28],
 # )
-# P("Константные поля для тех же строк:")
+# P("Константные поля account_id, source_type_id и вычисляемое id_key_camp (для тех же N строк):")
 # TABLE(
-#     ["REPLACE_ENTITY_id", "account_id", "source_type_id", "id_key_camp"],  # + "id_key_ad" для ad-level
-#     [["REPLACE_ID", "1", "9", "1_REPLACE_ID"]],
-#     [26, 22, 26, 58],  # для ad-level: [24, 20, 18, 22, 30, 38]
+#     ["account_id", "source_type_id", "id_key_camp"],  # + "id_key_ad" для ad-level
+#     [["1", "9", "1_REPLACE_ID"]],
+#     [26, 32, 62],  # для ad-level: ["account_id","source_type_id","id_key_camp","id_key_ad"] / [22,28,34,42]
 # )
-# P("Значения константных полей приведены как пример — при интеграции заменить на актуальные.")
+# P("Значения account_id и source_type_id приведены как пример — при интеграции заменить на актуальные.")
 
 # ── 8. Рекомендации по реализации ─────────────────────────────────────────────
 H1(f"8. Рекомендации по реализации на {TARGET_LANG}")

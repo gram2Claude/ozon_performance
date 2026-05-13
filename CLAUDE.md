@@ -98,6 +98,42 @@ python generate_tz_pdf.py   # → TZ_ozon_performance_PHP.pdf в корне ре
 Статистика запрашивается по 1 дню за раз (dateFrom == dateTo), BATCH_SIZE кампаний на запрос.
 Охват — [global_start_date, D], groupBy=NO_GROUP_BY.
 
+## Обогащение DataFrame (соглашение проекта)
+
+Каждая публичная функция, перед `df.reindex(columns=...)`, обогащает результат
+фиксированным набором константных и вычисляемых полей. Это часть контракта всех
+функций — менять/удалять только синхронно во всех шести.
+
+**Константы (все функции):** `account_id = 1`, `source_type_id = 9` — примеры,
+заменяемые при интеграции. Колонки итоговых DataFrame заданы константами
+`CAMPAIGN_DICT_COLUMNS`, `CAMPAIGN_STAT_COLUMNS`, `ADS_STAT_COLUMNS`,
+`CAMPAIGN_REACH_COLUMNS`, `ADS_REACH_COLUMNS`, `VIDEO_ADS_COLUMNS` в начале
+`ozon_performance.py`.
+
+**Справочник** (`get_campaign_dict`): дополнительно `product_id = 1`,
+`product_name = "prod_test"`, `camp_type = "camp_test"`,
+`camp_category = "cat_test"`, `owner_id = 1`.
+
+**Функции с расходами** (`get_campaigns_daily_stat`, `get_ads_daily_stat`,
+`get_video_ads_daily_stat`):
+- `costs_without_nds = costs_nds / 1.22` (НДС 22%)
+- `ak = 0.5` (агентская комиссия 50%, константа)
+- `costs_nds_ak = costs_nds * 1.5`
+- `costs_without_nds_ak = costs_without_nds * 1.5`
+
+**Составные ключи:**
+- `id_key_camp = "1_" + campaign_id` — во всех функциях
+- `id_key_ad = id_key_camp + "_" + ad_id` — **только для ad-level**
+  (`get_ads_daily_stat`, `get_reach_ads_daily_stat`, `get_video_ads_daily_stat`)
+
+**Семантика `costs_nds`:** название = «расход С НДС», но **источник зависит
+от типа отчёта**:
+- BANNER (`get_campaigns_daily_stat`, `get_ads_daily_stat`) — поле API
+  «Расход, ₽, с НДС»
+- VIDEO_BANNER (`get_video_ads_daily_stat`) — поле API «Расход, ₽» (БЕЗ НДС);
+  название колонки в этом случае вводит в заблуждение, фактически там сумма
+  без НДС — задокументировано в `info/01_functions_implemented.md`.
+
 **Кэш сырых CSV (`raw_data/raw_files/`):**
 - Префикс `raw_{date_from}_{date_to}_{cid}_{day}.csv` — статистика (groupBy=DATE),
   разделяется между `get_campaigns_daily_stat` / `get_ads_daily_stat` / `get_video_ads_daily_stat`
