@@ -92,6 +92,33 @@ From `specs/{API_REFERENCE_FILENAME}` (repo root):
 - Max **{PERIOD_MAX_DAYS} days** per report period
 - {EXTRA_CONSTRAINT_1}
 
+## Обогащение DataFrame (соглашение проекта)
+
+Каждая публичная функция обогащает результат фиксированным набором константных
+и вычисляемых полей **перед** `df.reindex(columns=...)`:
+
+**Константы (для всех функций):**
+- `account_id = 1`, `source_type_id = 9` — примеры, заменяемые при интеграции
+
+**Для справочников:** дополнительно `product_id = 1`, `product_name = "prod_test"`,
+`camp_type = "camp_test"`, `camp_category = "cat_test"`, `owner_id = 1`
+
+**Для функций с расходами** (НДС = 22%, агентская комиссия `ak = 0.5`):
+- `costs_without_nds = costs_nds / 1.22`
+- `costs_nds_ak = costs_nds * 1.5`
+- `costs_without_nds_ak = costs_without_nds * 1.5`
+
+**Составные ключи:**
+- `id_key_camp = "1_" + campaign_id` — для всех функций
+- `id_key_ad = id_key_camp + "_" + ad_id` — **только для ad-level** функций
+
+> **Важно про `costs_nds`:** название = «расход С НДС». Источник зависит от типа
+> отчёта API (BANNER → «Расход, ₽, с НДС»; VIDEO_BANNER → «Расход, ₽» без НДС).
+> При несовпадении название колонки может вводить в заблуждение — фиксировать в
+> `info/01_functions_implemented.md` по каждой функции отдельно.
+
+Значения констант — заменяемые при реальной интеграции (вписываются клиентом).
+
 ## Windows Encoding
 
 `{MODULE_NAME}.py` reconfigures `sys.stdout/stderr` to UTF-8 on import — required on Windows

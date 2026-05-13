@@ -76,6 +76,11 @@
 - Заполнит таблицу ограничений API
 - Опишет edge cases и acceptance criteria
 - Задаст open questions если что-то неясно из документации
+- **Добавит обязательное обогащение DataFrame** (константы `account_id`, `source_type_id`,
+  справочные `product_id`/`product_name`/`camp_type`/`camp_category`/`owner_id`,
+  вычисляемые `costs_without_nds`/`ak`/`costs_nds_ak`/`costs_without_nds_ak`,
+  составные ключи `id_key_camp` и для ad-level — `id_key_ad`) согласно соглашению
+  проекта — см. раздел «Обязательное обогащение DataFrame» в шаблоне spec
 
 ---
 

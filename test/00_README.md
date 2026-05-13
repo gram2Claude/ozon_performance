@@ -57,7 +57,11 @@ Claude определяет автоматически из документац
 Опиши вручную для каждой функции:
 - Тип (справочник / статистика / охват)
 - Имя функции
-- Колонки выходного DataFrame
+- Колонки выходного DataFrame — **только поля из API**. Константные и
+  вычисляемые поля (`account_id`, `source_type_id`, `id_key_camp`, `id_key_ad`,
+  `costs_without_nds`, `ak`, `costs_nds_ak`, `costs_without_nds_ak`, и др.)
+  Claude добавляет автоматически по соглашению — см. раздел «Обогащение DataFrame»
+  в `test/auto_generated/05_template_CLAUDE.md` и шаблоне spec.
 
 ---
 

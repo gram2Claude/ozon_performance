@@ -8,6 +8,15 @@
 она остаётся как подсказка. В пункте `Fn2. Тип` поставь `[x]` напротив одного
 варианта (только один тип на функцию).
 
+**Важно про Fn5 (колонки):** перечисляй только поля, которые приходят **из API**
+(например: `date, campaign_id, ad_id, ad_name, views, clicks, costs_nds`).
+Стандартные константные и вычисляемые поля (`account_id`, `source_type_id`,
+`id_key_camp`, `id_key_ad`, `costs_without_nds`, `ak`, `costs_nds_ak`,
+`costs_without_nds_ak`, плюс справочные `product_id`, `product_name`,
+`camp_type`, `camp_category`, `owner_id`) Claude **добавляет автоматически**
+по соглашению проекта — их в Fn5 указывать не нужно. См. шаблон
+`test/spec_templates/07_template_spec.md` → раздел «Обязательное обогащение DataFrame».
+
 ---
 
 ## Функции

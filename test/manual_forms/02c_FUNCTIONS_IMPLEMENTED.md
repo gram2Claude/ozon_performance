@@ -52,12 +52,23 @@ def {function_name}(
 |--------------------|-----------|---------------------|----------|
 | `date` | datetime64[ns] | `date` (string YYYY-MM-DD) | Дата отчёта |
 | `campaign_id` | string | `campaignId` | Идентификатор кампании |
+| `ad_id` | string | `bannerId` (только ad-level) | Идентификатор объявления |
+| `ad_name` | string | `bannerName` (только ad-level) | Название объявления |
 | `views` | Int64 | `views` (integer) | Показы |
-| `costs_nds` | Float64 | `moneySpent` (number) | Расход, ₽ |
+| `clicks` | Int64 | `clicks` (integer) | Клики |
+| `costs_nds` | Float64 | `Расход, ₽, с НДС` (BANNER) / `Расход, ₽` (VIDEO_BANNER, без НДС) | Расход — **проверить источник API**, см. ниже |
 | `costs_without_nds` | Float64 | вычисляется: `costs_nds / 1.22` | Расход без НДС (22%) |
 | `ak` | Float64 | константа `0.5` | Агентская комиссия |
 | `costs_nds_ak` | Float64 | вычисляется: `costs_nds * (1 + ak)` | Расход с НДС и комиссией |
 | `costs_without_nds_ak` | Float64 | вычисляется: `costs_without_nds * (1 + ak)` | Расход без НДС с комиссией |
+| `account_id` | Int64 | константа `1` | Пример, заменить при интеграции |
+| `source_type_id` | Int64 | константа `9` | Пример |
+| `id_key_camp` | string | вычисляется: `"1_" + campaign_id` | Составной ключ кампании |
+| `id_key_ad` | string | вычисляется: `id_key_camp + "_" + ad_id` | Составной ключ объявления (**только ad-level**) |
+
+**Для справочника** (вместо части полей выше): добавить ещё `product_id=1`,
+`product_name="prod_test"`, `camp_type="camp_test"`, `camp_category="cat_test"`,
+`owner_id=1` (все — константы-примеры, заменяемые при интеграции).
 
 ### Специфика / сложности реализации
 
@@ -73,6 +84,10 @@ def {function_name}(
 - **Группировка:** при `groupBy=NO_GROUP_BY` отсутствуют поля `date`/`campaignId`,
   возвращается одна строка-агрегат
 - **Расхождения с доками:** поле `X` в реальности приходит как string, не number
+- **Источник `costs_nds`:** название колонки = "расход С НДС". Для BANNER берётся
+  поле API «Расход, ₽, с НДС». Для VIDEO_BANNER API возвращает только «Расход, ₽»
+  (без НДС) — в этом случае `costs_nds` фактически содержит сумму БЕЗ НДС;
+  обязательно зафиксировать это здесь
 
 ### История изменений
 
