@@ -314,12 +314,12 @@ TABLE(
 
 H2("7.2. REPLACE_FUNCTION_2_NAME — дневная статистика")
 TABLE(
-    ["date", "REPLACE_ENTITY_id", "REPLACE_ENTITY_name", "views", "clicks", "costs_nds", "costs_without_nds"],
+    ["date", "REPLACE_ENTITY_id", "REPLACE_ENTITY_name", "views", "clicks", "costs_nds", "costs_without_nds", "ak", "costs_nds_ak", "costs_without_nds_ak"],
     [
-        ["REPLACE_STAT_ROW_1_DATE", "REPLACE_ID", "REPLACE_NAME", "REPLACE_V", "REPLACE_C", "REPLACE_M", "REPLACE_M_NO_NDS"],
-        ["REPLACE_STAT_ROW_2_DATE", "REPLACE_ID", "REPLACE_NAME", "REPLACE_V", "REPLACE_C", "REPLACE_M", "REPLACE_M_NO_NDS"],
+        ["REPLACE_STAT_ROW_1_DATE", "REPLACE_ID", "REPLACE_NAME", "REPLACE_V", "REPLACE_C", "REPLACE_M", "REPLACE_M_NO_NDS", "0.5", "REPLACE_M_AK", "REPLACE_M_NO_NDS_AK"],
+        ["REPLACE_STAT_ROW_2_DATE", "REPLACE_ID", "REPLACE_NAME", "REPLACE_V", "REPLACE_C", "REPLACE_M", "REPLACE_M_NO_NDS", "0.5", "REPLACE_M_AK", "REPLACE_M_NO_NDS_AK"],
     ],
-    [18, 18, 36, 16, 14, 22, 26],
+    [16, 16, 32, 14, 12, 20, 22, 10, 20, 18],
 )
 P("Константные и вычисляемые поля для тех же строк:")
 TABLE(

@@ -84,6 +84,9 @@ CAMPAIGN_STAT_COLUMNS = [
     "clicks",
     "costs_nds",
     "costs_without_nds",
+    "ak",
+    "costs_nds_ak",
+    "costs_without_nds_ak",
     "account_id",
     "source_type_id",
     "id_key_camp",
@@ -98,6 +101,9 @@ ADS_STAT_COLUMNS = [
     "clicks",
     "costs_nds",
     "costs_without_nds",
+    "ak",
+    "costs_nds_ak",
+    "costs_without_nds_ak",
     "account_id",
     "source_type_id",
     "id_key_camp",
@@ -140,6 +146,9 @@ VIDEO_ADS_COLUMNS = [
     "views_with_sound",
     "costs_nds",
     "costs_without_nds",
+    "ak",
+    "costs_nds_ak",
+    "costs_without_nds_ak",
     "account_id",
     "source_type_id",
     "id_key_camp",
@@ -788,6 +797,9 @@ def get_campaigns_daily_stat(
         return pd.DataFrame(columns=CAMPAIGN_STAT_COLUMNS)
     df = pd.DataFrame(all_rows)
     df["costs_without_nds"] = df["costs_nds"] / 1.22
+    df["ak"] = 0.5
+    df["costs_nds_ak"] = df["costs_nds"] * (1 + 0.5)
+    df["costs_without_nds_ak"] = df["costs_without_nds"] * (1 + 0.5)
     df["account_id"] = 1
     df["source_type_id"] = 9
     df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
@@ -853,6 +865,9 @@ def get_ads_daily_stat(
         return pd.DataFrame(columns=ADS_STAT_COLUMNS)
     df = pd.DataFrame(all_rows)
     df["costs_without_nds"] = df["costs_nds"] / 1.22
+    df["ak"] = 0.5
+    df["costs_nds_ak"] = df["costs_nds"] * (1 + 0.5)
+    df["costs_without_nds_ak"] = df["costs_without_nds"] * (1 + 0.5)
     df["account_id"] = 1
     df["source_type_id"] = 9
     df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
@@ -1078,6 +1093,9 @@ def get_video_ads_daily_stat(
         return pd.DataFrame(columns=VIDEO_ADS_COLUMNS)
     df = pd.DataFrame(all_rows)
     df["costs_without_nds"] = df["costs_nds"] / 1.22
+    df["ak"] = 0.5
+    df["costs_nds_ak"] = df["costs_nds"] * (1 + 0.5)
+    df["costs_without_nds_ak"] = df["costs_without_nds"] * (1 + 0.5)
     df["account_id"] = 1
     df["source_type_id"] = 9
     df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)

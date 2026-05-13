@@ -73,10 +73,13 @@ TOKEN_REFRESH_LEEWAY_SEC = 60           # обновлять токен за 60 
     "date",
     "{ENTITY_NAME}_id",
     # Добавь метрики: views, clicks, costs_nds и т.д.
-    "costs_without_nds",  # вычисляется: costs_nds / 1.22 (НДС 22%)
-    "account_id",         # константа: 1
-    "source_type_id",     # константа: 9
-    "id_key_camp",        # вычисляется: "1_" + {ENTITY_NAME}_id
+    "costs_without_nds",      # вычисляется: costs_nds / 1.22 (НДС 22%)
+    "ak",                     # константа: 0.5 (агентская комиссия)
+    "costs_nds_ak",           # вычисляется: costs_nds * (1 + ak)
+    "costs_without_nds_ak",   # вычисляется: costs_without_nds * (1 + ak)
+    "account_id",             # константа: 1
+    "source_type_id",         # константа: 9
+    "id_key_camp",            # вычисляется: "1_" + {ENTITY_NAME}_id
 ]
 
 # Добавь константы колонок для каждой дополнительной функции:
@@ -510,6 +513,9 @@ def {FUNCTION_2_NAME}(date_from: str, date_to: str) -> pd.DataFrame:
         return pd.DataFrame(columns={ENTITY_NAME_UPPER}_STAT_COLUMNS)
     df = pd.DataFrame(rows)
     df["costs_without_nds"] = df["costs_nds"] / 1.22
+    df["ak"] = 0.5
+    df["costs_nds_ak"] = df["costs_nds"] * (1 + 0.5)
+    df["costs_without_nds_ak"] = df["costs_without_nds"] * (1 + 0.5)
     df["account_id"] = 1
     df["source_type_id"] = 9
     df["id_key_camp"] = "1_" + df["{ENTITY_NAME}_id"].astype(str)

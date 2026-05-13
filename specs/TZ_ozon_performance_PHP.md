@@ -214,6 +214,9 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE`.
 | `clicks` | float | `Клики` |
 | `costs_nds` | float | `Расход, ₽, с НДС` |
 | `costs_without_nds` | float | **вычисляется**: `costs_nds / 1.22` (НДС 22%) |
+| `ak` | float | **константа** (значение `0.5` — агентская комиссия 50%) |
+| `costs_nds_ak` | float | **вычисляется**: `costs_nds * (1 + ak)` |
+| `costs_without_nds_ak` | float | **вычисляется**: `costs_without_nds * (1 + ak)` |
 | `account_id` | integer | **константа** (значение `1` — пример) |
 | `source_type_id` | integer | **константа** (значение `9` — пример) |
 | `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
@@ -239,6 +242,9 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 | `clicks` | float | `Клики` |
 | `costs_nds` | float | `Расход, ₽, с НДС` |
 | `costs_without_nds` | float | **вычисляется**: `costs_nds / 1.22` (НДС 22%) |
+| `ak` | float | **константа** (значение `0.5` — агентская комиссия 50%) |
+| `costs_nds_ak` | float | **вычисляется**: `costs_nds * (1 + ak)` |
+| `costs_without_nds_ak` | float | **вычисляется**: `costs_without_nds * (1 + ak)` |
 | `account_id` | integer | **константа** (значение `1` — пример) |
 | `source_type_id` | integer | **константа** (значение `9` — пример) |
 | `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
@@ -327,6 +333,9 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint чт
 | `views_with_sound` | float | `Просмотры со звуком` |
 | `costs_nds` | float | `Расход, ₽` |
 | `costs_without_nds` | float | **вычисляется**: `costs_nds / 1.22` (НДС 22%) |
+| `ak` | float | **константа** (значение `0.5` — агентская комиссия 50%) |
+| `costs_nds_ak` | float | **вычисляется**: `costs_nds * (1 + ak)` |
+| `costs_without_nds_ak` | float | **вычисляется**: `costs_without_nds * (1 + ak)` |
 | `account_id` | integer | **константа** (значение `1` — пример) |
 | `source_type_id` | integer | **константа** (значение `9` — пример) |
 | `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
