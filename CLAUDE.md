@@ -8,7 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pip install -r ozon_performance/requirements.txt
 # dev (pytest, ruff):
 pip install -r ozon_performance/requirements-dev.txt
+# для генерации PDF ТЗ (`generate_tz_pdf.py`):
+pip install fpdf2
 ```
+
+`fpdf2` намеренно не включён в `requirements.txt` — он нужен только для разовой
+генерации PDF ТЗ, не для runtime библиотеки.
 
 Credentials in `ozon_performance/.env` (copy from `ozon_performance/.env.example`):
 ```
@@ -179,6 +184,14 @@ tests/                             # зарезервировано под pytes
 manual_forms/                      # заполненные вручную анкеты проекта
 auto_generated/                    # автогенерируемые файлы (шаблоны)
 test/                              # шаблоны для инициализации новых проектов (не тесты)
+  00_README.md                     # порядок шагов 0–5 нового проекта
+  01_PROJECT_STRUCTURE.md          # шаг 0: структура папок
+  manual_forms/                    # шаблоны анкет (02_*, 02b_*, 02c_*, 03_*)
+  auto_generated/                  # шаблоны скаффолда (04_client.py, 05_CLAUDE.md, 06_demo.ipynb)
+  spec_templates/                  # шаблон spec + HOW_TO
+  plan_templates/                  # шаблон plan + HOW_TO
+  tz_templates/                    # шаблон ТЗ (10_*, 11_*) + HOW_TO
+  09_SPEC_template_system.md       # мета-спецификация всей шаблонной системы
 
 ozon_performance/
   ozon_performance.py              # единственный файл библиотеки
