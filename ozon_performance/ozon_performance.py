@@ -67,6 +67,14 @@ TOKEN_REFRESH_LEEWAY_SEC = 60    # обновлять токен за 60 сек 
 CAMPAIGN_DICT_COLUMNS = [
     "campaign_id",
     "campaign_name",
+    "account_id",
+    "source_type_id",
+    "product_id",
+    "product_name",
+    "camp_type",
+    "camp_category",
+    "id_key_camp",
+    "owner_id",
 ]
 
 CAMPAIGN_STAT_COLUMNS = [
@@ -691,6 +699,14 @@ def get_campaign_dict() -> pd.DataFrame:
         for c in campaigns
     ])
     df = df.dropna(subset=["campaign_id"]).drop_duplicates(subset=["campaign_id"])
+    df["account_id"] = 1
+    df["source_type_id"] = 9
+    df["product_id"] = 1
+    df["product_name"] = "prod_test"
+    df["camp_type"] = "camp_test"
+    df["camp_category"] = "cat_test"
+    df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
+    df["owner_id"] = 1
     return df.reindex(columns=CAMPAIGN_DICT_COLUMNS).reset_index(drop=True)
 
 

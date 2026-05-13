@@ -58,7 +58,15 @@ TOKEN_REFRESH_LEEWAY_SEC = 60           # обновлять токен за 60 
 {ENTITY_NAME_UPPER}_DICT_COLUMNS = [
     "{ENTITY_NAME}_id",
     "{ENTITY_NAME}_name",
-    # Добавь нужные поля справочника (state, budget, start_date и т.д.)
+    "account_id",       # константа: 1
+    "source_type_id",   # константа: 9
+    "product_id",       # константа: 1
+    "product_name",     # константа: "prod_test"
+    "camp_type",        # константа: "camp_test"
+    "camp_category",    # константа: "cat_test"
+    "id_key_camp",      # вычисляется: "1_" + {ENTITY_NAME}_id
+    "owner_id",         # константа: 1
+    # Добавь дополнительные поля справочника если нужно (state, budget, start_date и т.д.)
 ]
 
 {ENTITY_NAME_UPPER}_STAT_COLUMNS = [
@@ -463,6 +471,14 @@ def {FUNCTION_1_NAME}() -> pd.DataFrame:
         for e in entities
     ])
     df = df.dropna(subset=["{ENTITY_NAME}_id"]).drop_duplicates(subset=["{ENTITY_NAME}_id"])
+    df["account_id"] = 1
+    df["source_type_id"] = 9
+    df["product_id"] = 1
+    df["product_name"] = "prod_test"
+    df["camp_type"] = "camp_test"
+    df["camp_category"] = "cat_test"
+    df["id_key_camp"] = "1_" + df["{ENTITY_NAME}_id"].astype(str)
+    df["owner_id"] = 1
     return df.reindex(columns={ENTITY_NAME_UPPER}_DICT_COLUMNS).reset_index(drop=True)
 
 

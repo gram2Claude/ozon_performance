@@ -21,6 +21,7 @@ assert df["campaign_id"].notna().all(), "Есть NaN в campaign_id"
 assert df["campaign_id"].duplicated().sum() == 0, "Есть дубликаты campaign_id"
 assert pd.api.types.is_string_dtype(df["campaign_id"]), f"campaign_id не str: {df['campaign_id'].dtype}"
 
+
 print("Все проверки пройдены.")
 
 out_path = PROJECT_ROOT / "raw_data" / "get_campaign_dict.csv"
@@ -28,7 +29,7 @@ df.to_csv(out_path, index=False, encoding="cp1251", errors="replace")
 print(f"Сохранено: {out_path}")
 
 # Показ из сохранённого CSV
-saved = pd.read_csv(out_path, encoding="cp1251", errors="replace")
+saved = pd.read_csv(out_path, encoding="cp1251")
 print(f"\nshape: {saved.shape}")
 print(f"columns: {list(saved.columns)}")
 print(f"\nhead(5) из {out_path.name}:")
