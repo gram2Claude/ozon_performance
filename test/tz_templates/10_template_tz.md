@@ -263,6 +263,7 @@ HTTP: `GET {SYNC_DATA_PATH}` с `dateFrom` / `dateTo`. Данные из `{SYNC_
 | `views` | float | Показы |
 | `clicks` | float | Клики |
 | `costs_nds` | float | Расход в рублях |
+| `costs_without_nds` | float | **вычисляется**: `costs_nds / 1.22` (НДС 22%) |
 | `account_id` | integer | **константа** (значение `1` — пример, задаётся на стороне клиента) |
 | `source_type_id` | integer | **константа** (значение `9` — пример, задаётся на стороне клиента) |
 | `id_key_camp` | string | **вычисляется**: `"1_" + {ENTITY_NAME}_id` |
