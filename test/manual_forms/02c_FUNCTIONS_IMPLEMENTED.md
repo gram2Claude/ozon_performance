@@ -54,6 +54,10 @@ def {function_name}(
 | `campaign_id` | string | `campaignId` | Идентификатор кампании |
 | `views` | Int64 | `views` (integer) | Показы |
 | `costs_nds` | Float64 | `moneySpent` (number) | Расход, ₽ |
+| `costs_without_nds` | Float64 | вычисляется: `costs_nds / 1.22` | Расход без НДС (22%) |
+| `ak` | Float64 | константа `0.5` | Агентская комиссия |
+| `costs_nds_ak` | Float64 | вычисляется: `costs_nds * (1 + ak)` | Расход с НДС и комиссией |
+| `costs_without_nds_ak` | Float64 | вычисляется: `costs_without_nds * (1 + ak)` | Расход без НДС с комиссией |
 
 ### Специфика / сложности реализации
 

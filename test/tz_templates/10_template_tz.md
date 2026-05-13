@@ -431,10 +431,10 @@ Authorization: ...
 
 ### 7.2. {FUNCTION_2_NAME} — дневная статистика
 
-| date | {ENTITY_NAME}_id | {ENTITY_NAME}_name | views | clicks | costs_nds | account_id | source_type_id | id_key_camp |
-|------|------------------|--------------------|-------|--------|-----------|-----------|----------------|-------------|
-| {STAT_ROW_1} | | | | | | 1 | 9 | 1_{ENTITY_NAME_ROW_1_ID} |
-| {STAT_ROW_2} | | | | | | 1 | 9 | 1_{ENTITY_NAME_ROW_2_ID} |
+| date | {ENTITY_NAME}_id | {ENTITY_NAME}_name | views | clicks | costs_nds | costs_without_nds | ak | costs_nds_ak | costs_without_nds_ak | account_id | source_type_id | id_key_camp |
+|------|------------------|--------------------|-------|--------|-----------|-------------------|----|--------------|----------------------|-----------|----------------|-------------|
+| {STAT_ROW_1} | | | | | | | 0.5 | | | 1 | 9 | 1_{ENTITY_NAME_ROW_1_ID} |
+| {STAT_ROW_2} | | | | | | | 0.5 | | | 1 | 9 | 1_{ENTITY_NAME_ROW_2_ID} |
 
 > Константные поля заполняются примерными значениями — при интеграции заменить на актуальные.
 
