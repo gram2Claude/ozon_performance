@@ -263,6 +263,9 @@ HTTP: `GET {SYNC_DATA_PATH}` с `dateFrom` / `dateTo`. Данные из `{SYNC_
 | `views` | float | Показы |
 | `clicks` | float | Клики |
 | `costs_nds` | float | Расход в рублях |
+| `account_id` | integer | **константа** (значение `1` — пример, задаётся на стороне клиента) |
+| `source_type_id` | integer | **константа** (значение `9` — пример, задаётся на стороне клиента) |
+| `id_key_camp` | string | **вычисляется**: `"1_" + {ENTITY_NAME}_id` |
 
 ---
 
@@ -424,10 +427,12 @@ Authorization: ...
 
 ### 7.2. {FUNCTION_2_NAME} — дневная статистика
 
-| date | {ENTITY_NAME}_id | {ENTITY_NAME}_name | views | clicks | costs_nds |
-|------|------------------|--------------------|-------|--------|-------------|
-| {STAT_ROW_1} | | | | | |
-| {STAT_ROW_2} | | | | | |
+| date | {ENTITY_NAME}_id | {ENTITY_NAME}_name | views | clicks | costs_nds | account_id | source_type_id | id_key_camp |
+|------|------------------|--------------------|-------|--------|-----------|-----------|----------------|-------------|
+| {STAT_ROW_1} | | | | | | 1 | 9 | 1_{ENTITY_NAME_ROW_1_ID} |
+| {STAT_ROW_2} | | | | | | 1 | 9 | 1_{ENTITY_NAME_ROW_2_ID} |
+
+> Константные поля заполняются примерными значениями — при интеграции заменить на актуальные.
 
 <!-- [CUMULATIVE] -->
 ### 7.3. {FUNCTION_CUMULATIVE_NAME} — кумулятивная метрика

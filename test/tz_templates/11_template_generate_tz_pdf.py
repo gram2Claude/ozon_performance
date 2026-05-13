@@ -319,8 +319,18 @@ TABLE(
         ["REPLACE_STAT_ROW_1_DATE", "REPLACE_ID", "REPLACE_NAME", "REPLACE_V", "REPLACE_C", "REPLACE_M"],
         ["REPLACE_STAT_ROW_2_DATE", "REPLACE_ID", "REPLACE_NAME", "REPLACE_V", "REPLACE_C", "REPLACE_M"],
     ],
-    [24, 24, 60, 22, 22, 28],
+    [20, 20, 40, 18, 16, 26],
 )
+P("Константные и вычисляемые поля для тех же строк:")
+TABLE(
+    ["REPLACE_ENTITY_id", "account_id", "source_type_id", "id_key_camp"],
+    [
+        ["REPLACE_ID", "1", "9", "1_REPLACE_ID"],
+        ["REPLACE_ID", "1", "9", "1_REPLACE_ID"],
+    ],
+    [40, 28, 34, 78],
+)
+P("Значения константных полей приведены как пример — при интеграции заменить на актуальные.")
 
 # Добавь TABLE для каждой дополнительной функции
 

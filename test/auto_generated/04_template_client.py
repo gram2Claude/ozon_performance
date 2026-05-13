@@ -73,6 +73,9 @@ TOKEN_REFRESH_LEEWAY_SEC = 60           # обновлять токен за 60 
     "date",
     "{ENTITY_NAME}_id",
     # Добавь метрики: views, clicks, costs_nds и т.д.
+    "account_id",       # константа: 1
+    "source_type_id",   # константа: 9
+    "id_key_camp",      # вычисляется: "1_" + {ENTITY_NAME}_id
 ]
 
 # Добавь константы колонок для каждой дополнительной функции:
@@ -504,7 +507,11 @@ def {FUNCTION_2_NAME}(date_from: str, date_to: str) -> pd.DataFrame:
 
     if not rows:
         return pd.DataFrame(columns={ENTITY_NAME_UPPER}_STAT_COLUMNS)
-    return pd.DataFrame(rows).reindex(columns={ENTITY_NAME_UPPER}_STAT_COLUMNS).reset_index(drop=True)
+    df = pd.DataFrame(rows)
+    df["account_id"] = 1
+    df["source_type_id"] = 9
+    df["id_key_camp"] = "1_" + df["{ENTITY_NAME}_id"].astype(str)
+    return df.reindex(columns={ENTITY_NAME_UPPER}_STAT_COLUMNS).reset_index(drop=True)
 
 
 # ── [INCLUDE IF F4 cumulative metrics exist] ──────────────────────────────────
@@ -574,5 +581,8 @@ def {FUNCTION_CUMULATIVE_NAME}(
     df = df.sort_values(["{ENTITY_NAME}_id", "date"]).reset_index(drop=True)
     df["increment"] = df.groupby("{ENTITY_NAME}_id")["{CUMULATIVE_METRIC_NAME}"].diff()
     df["increment"] = df["increment"].fillna(df["{CUMULATIVE_METRIC_NAME}"])  # первый день = значение метрики
+    df["account_id"] = 1
+    df["source_type_id"] = 9
+    df["id_key_camp"] = "1_" + df["{ENTITY_NAME}_id"].astype(str)
     return df.reindex(columns={ENTITY_NAME_UPPER}_REACH_COLUMNS).reset_index(drop=True)
 # ── [/CUMULATIVE] ─────────────────────────────────────────────────────────────

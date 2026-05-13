@@ -83,6 +83,9 @@ CAMPAIGN_STAT_COLUMNS = [
     "views",
     "clicks",
     "costs_nds",
+    "account_id",
+    "source_type_id",
+    "id_key_camp",
 ]
 
 ADS_STAT_COLUMNS = [
@@ -93,6 +96,9 @@ ADS_STAT_COLUMNS = [
     "views",
     "clicks",
     "costs_nds",
+    "account_id",
+    "source_type_id",
+    "id_key_camp",
 ]
 
 CAMPAIGN_REACH_COLUMNS = [
@@ -100,6 +106,9 @@ CAMPAIGN_REACH_COLUMNS = [
     "campaign_id",
     "reach",
     "increment",
+    "account_id",
+    "source_type_id",
+    "id_key_camp",
 ]
 
 ADS_REACH_COLUMNS = [
@@ -109,6 +118,9 @@ ADS_REACH_COLUMNS = [
     "ad_name",
     "reach",
     "increment",
+    "account_id",
+    "source_type_id",
+    "id_key_camp",
 ]
 
 VIDEO_ADS_COLUMNS = [
@@ -125,6 +137,9 @@ VIDEO_ADS_COLUMNS = [
     "quartile_100",
     "views_with_sound",
     "costs_nds",
+    "account_id",
+    "source_type_id",
+    "id_key_camp",
 ]
 
 
@@ -769,6 +784,9 @@ def get_campaigns_daily_stat(
     if not all_rows:
         return pd.DataFrame(columns=CAMPAIGN_STAT_COLUMNS)
     df = pd.DataFrame(all_rows)
+    df["account_id"] = 1
+    df["source_type_id"] = 9
+    df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
     return df.reindex(columns=CAMPAIGN_STAT_COLUMNS).reset_index(drop=True)
 
 
@@ -830,6 +848,9 @@ def get_ads_daily_stat(
     if not all_rows:
         return pd.DataFrame(columns=ADS_STAT_COLUMNS)
     df = pd.DataFrame(all_rows)
+    df["account_id"] = 1
+    df["source_type_id"] = 9
+    df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
     return df.reindex(columns=ADS_STAT_COLUMNS).reset_index(drop=True)
 
 
@@ -906,6 +927,9 @@ def get_reach_campaigns_daily_stat(
     df = df.sort_values(["campaign_id", "date"])
     df["increment"] = df.groupby("campaign_id")["reach"].diff()
     df["increment"] = df["increment"].fillna(df["reach"])
+    df["account_id"] = 1
+    df["source_type_id"] = 9
+    df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
     return df.reindex(columns=CAMPAIGN_REACH_COLUMNS).reset_index(drop=True)
 
 
@@ -980,6 +1004,9 @@ def get_reach_ads_daily_stat(
     df = df.sort_values(["campaign_id", "ad_id", "date"])
     df["increment"] = df.groupby(["campaign_id", "ad_id"])["reach"].diff()
     df["increment"] = df["increment"].fillna(df["reach"])
+    df["account_id"] = 1
+    df["source_type_id"] = 9
+    df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
     return df.reindex(columns=ADS_REACH_COLUMNS).reset_index(drop=True)
 
 
@@ -1045,4 +1072,7 @@ def get_video_ads_daily_stat(
     if not all_rows:
         return pd.DataFrame(columns=VIDEO_ADS_COLUMNS)
     df = pd.DataFrame(all_rows)
+    df["account_id"] = 1
+    df["source_type_id"] = 9
+    df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
     return df.reindex(columns=VIDEO_ADS_COLUMNS).reset_index(drop=True)

@@ -213,6 +213,9 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE`.
 | `views` | float | `Показы` |
 | `clicks` | float | `Клики` |
 | `costs_nds` | float | `Расход, ₽, с НДС` |
+| `account_id` | integer | **константа** (значение `1` — пример) |
+| `source_type_id` | integer | **константа** (значение `9` — пример) |
+| `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
 
 ---
 
@@ -234,6 +237,9 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 | `views` | float | `Показы` |
 | `clicks` | float | `Клики` |
 | `costs_nds` | float | `Расход, ₽, с НДС` |
+| `account_id` | integer | **константа** (значение `1` — пример) |
+| `source_type_id` | integer | **константа** (значение `9` — пример) |
+| `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
 
 Пропускать: строки с пустым `ID баннера`, строки `Всего`, строки `Корректировка`.
 
@@ -255,6 +261,9 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 | `campaign_id` | string | из контекста батча |
 | `reach` | float | `Охват` из строки «Всего» CSV |
 | `increment` | float | `reach[D] − reach[D−1]`; для первого дня = `reach` |
+| `account_id` | integer | **константа** (значение `1` — пример) |
+| `source_type_id` | integer | **константа** (значение `9` — пример) |
+| `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
 
 Кэш CSV: `reach_{global_start_date}_{campaign_id}_{day}.csv` — не пересекается
 с кэшем функций 4.2/4.3 (статистика по дням использует префикс `raw_`).
@@ -278,6 +287,9 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 | `ad_name` | string | `Название` |
 | `reach` | float | `Охват`, сумма по платформам |
 | `increment` | float | `reach[D] − reach[D−1]` по группе `(campaign_id, ad_id)` |
+| `account_id` | integer | **константа** (значение `1` — пример) |
+| `source_type_id` | integer | **константа** (значение `9` — пример) |
+| `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
 
 Пропускать: строку «Всего», строки с пустым `ID баннера`, строку «Корректировка».
 Включать только строки с `reach > 0`.
@@ -312,6 +324,9 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint чт
 | `quartile_100` | float | `Досмотры по квартилям 100%` |
 | `views_with_sound` | float | `Просмотры со звуком` |
 | `costs_nds` | float | `Расход, ₽` |
+| `account_id` | integer | **константа** (значение `1` — пример) |
+| `source_type_id` | integer | **константа** (значение `9` — пример) |
+| `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
 
 ---
 
