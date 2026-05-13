@@ -107,6 +107,7 @@ ADS_STAT_COLUMNS = [
     "account_id",
     "source_type_id",
     "id_key_camp",
+    "id_key_ad",
 ]
 
 CAMPAIGN_REACH_COLUMNS = [
@@ -129,6 +130,7 @@ ADS_REACH_COLUMNS = [
     "account_id",
     "source_type_id",
     "id_key_camp",
+    "id_key_ad",
 ]
 
 VIDEO_ADS_COLUMNS = [
@@ -152,6 +154,7 @@ VIDEO_ADS_COLUMNS = [
     "account_id",
     "source_type_id",
     "id_key_camp",
+    "id_key_ad",
 ]
 
 
@@ -871,6 +874,7 @@ def get_ads_daily_stat(
     df["account_id"] = 1
     df["source_type_id"] = 9
     df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
+    df["id_key_ad"] = df["id_key_camp"] + "_" + df["ad_id"].astype(str)
     return df.reindex(columns=ADS_STAT_COLUMNS).reset_index(drop=True)
 
 
@@ -1027,6 +1031,7 @@ def get_reach_ads_daily_stat(
     df["account_id"] = 1
     df["source_type_id"] = 9
     df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
+    df["id_key_ad"] = df["id_key_camp"] + "_" + df["ad_id"].astype(str)
     return df.reindex(columns=ADS_REACH_COLUMNS).reset_index(drop=True)
 
 
@@ -1099,4 +1104,5 @@ def get_video_ads_daily_stat(
     df["account_id"] = 1
     df["source_type_id"] = 9
     df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
+    df["id_key_ad"] = df["id_key_camp"] + "_" + df["ad_id"].astype(str)
     return df.reindex(columns=VIDEO_ADS_COLUMNS).reset_index(drop=True)

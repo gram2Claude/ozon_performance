@@ -248,6 +248,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 | `account_id` | integer | **константа** (значение `1` — пример) |
 | `source_type_id` | integer | **константа** (значение `9` — пример) |
 | `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
+| `id_key_ad` | string | **вычисляется**: `id_key_camp + "_" + ad_id` (пример: `"1_25725956_602761"`) |
 
 Пропускать: строки с пустым `ID баннера`, строки `Всего`, строки `Корректировка`.
 
@@ -298,6 +299,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 | `account_id` | integer | **константа** (значение `1` — пример) |
 | `source_type_id` | integer | **константа** (значение `9` — пример) |
 | `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
+| `id_key_ad` | string | **вычисляется**: `id_key_camp + "_" + ad_id` (пример: `"1_25725956_602761"`) |
 
 Пропускать: строку «Всего», строки с пустым `ID баннера`, строку «Корректировка».
 Включать только строки с `reach > 0`.
@@ -339,6 +341,7 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint чт
 | `account_id` | integer | **константа** (значение `1` — пример) |
 | `source_type_id` | integer | **константа** (значение `9` — пример) |
 | `id_key_camp` | string | **вычисляется**: `"1_" + campaign_id` |
+| `id_key_ad` | string | **вычисляется**: `id_key_camp + "_" + ad_id` (пример: `"1_25725956_602761"`) |
 
 ---
 

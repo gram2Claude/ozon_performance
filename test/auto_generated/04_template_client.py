@@ -82,9 +82,10 @@ TOKEN_REFRESH_LEEWAY_SEC = 60           # обновлять токен за 60 
     "id_key_camp",            # вычисляется: "1_" + {ENTITY_NAME}_id
 ]
 
-# Добавь константы колонок для каждой дополнительной функции:
-# {ENTITY_NAME_UPPER}_VIDEO_COLUMNS = [...]
-# {ENTITY_NAME_UPPER}_REACH_COLUMNS = [...]
+# Добавь константы колонок для каждой дополнительной функции.
+# Для ad-level таблиц (VIDEO, REACH_ADS и т.п.) включи "id_key_ad" последним:
+# {ENTITY_NAME_UPPER}_VIDEO_COLUMNS = [..., "id_key_camp", "id_key_ad"]
+# {ENTITY_NAME_UPPER}_REACH_COLUMNS = [..., "id_key_camp", "id_key_ad"]
 
 
 # ── Клиент ────────────────────────────────────────────────────────────────────
@@ -519,6 +520,7 @@ def {FUNCTION_2_NAME}(date_from: str, date_to: str) -> pd.DataFrame:
     df["account_id"] = 1
     df["source_type_id"] = 9
     df["id_key_camp"] = "1_" + df["{ENTITY_NAME}_id"].astype(str)
+    # df["id_key_ad"] = df["id_key_camp"] + "_" + df["ad_id"].astype(str)  # только для ad-level
     return df.reindex(columns={ENTITY_NAME_UPPER}_STAT_COLUMNS).reset_index(drop=True)
 
 
@@ -592,5 +594,6 @@ def {FUNCTION_CUMULATIVE_NAME}(
     df["account_id"] = 1
     df["source_type_id"] = 9
     df["id_key_camp"] = "1_" + df["{ENTITY_NAME}_id"].astype(str)
+    # df["id_key_ad"] = df["id_key_camp"] + "_" + df["ad_id"].astype(str)  # только для ad-level
     return df.reindex(columns={ENTITY_NAME_UPPER}_REACH_COLUMNS).reset_index(drop=True)
 # ── [/CUMULATIVE] ─────────────────────────────────────────────────────────────

@@ -274,12 +274,14 @@ HTTP: `GET {SYNC_DATA_PATH}` с `dateFrom` / `dateTo`. Данные из `{SYNC_
 ---
 
 <!-- Добавь блок для каждой дополнительной функции статистики -->
-<!-- Пример:
+<!-- Пример (ad-level — добавляет id_key_ad):
 ### 4.3. {FUNCTION_3_NAME}(date_from, date_to)
 Гранулярность: одна строка на объявление/баннер × date.
 HTTP: POST {SUBMIT_PATH_2} с groupBy={GROUP_BY_OBJECT}.
 | Поле | Тип | Описание |
-...
+| ... | ... | ... |
+| `id_key_camp` | string | **вычисляется**: `"1_" + {ENTITY_NAME}_id` |
+| `id_key_ad` | string | **вычисляется**: `id_key_camp + "_" + ad_id` (пример: `"1_25725956_602761"`) |
 -->
 
 <!-- [CUMULATIVE] -->
@@ -300,6 +302,11 @@ HTTP: POST {SUBMIT_PATH_2} с groupBy={GROUP_BY_OBJECT}.
 | `{ENTITY_NAME}_name` | string | Название |
 | `{CUMULATIVE_METRIC_NAME}` | float | Значение за период `[global_start_date, date]` |
 | `increment` | float | Прирост относительно предыдущей даты; для первой даты = `{CUMULATIVE_METRIC_NAME}` |
+| `account_id` | integer | **константа** (значение `1` — пример) |
+| `source_type_id` | integer | **константа** (значение `9` — пример) |
+| `id_key_camp` | string | **вычисляется**: `"1_" + {ENTITY_NAME}_id` |
+<!-- Для ad-level reach-функций добавь: -->
+<!-- | `id_key_ad` | string | **вычисляется**: `id_key_camp + "_" + ad_id` (пример: `"1_25725956_602761"`) | -->
 <!-- [/CUMULATIVE] -->
 
 ---
@@ -441,13 +448,24 @@ Authorization: ...
 <!-- [CUMULATIVE] -->
 ### 7.3. {FUNCTION_CUMULATIVE_NAME} — кумулятивная метрика
 
-| date | {ENTITY_NAME}_id | {ENTITY_NAME}_name | {CUMULATIVE_METRIC_NAME} | increment |
-|------|------------------|--------------------|--------------------------|-----------|
-| {REACH_ROW_1} | | | (значение) | (= {CUMULATIVE_METRIC_NAME}, fillna) |
-| {REACH_ROW_2} | | | (значение) | (= {CUMULATIVE_METRIC_NAME}[D] − {CUMULATIVE_METRIC_NAME}[D−1]) |
+| date | {ENTITY_NAME}_id | {ENTITY_NAME}_name | {CUMULATIVE_METRIC_NAME} | increment | account_id | source_type_id | id_key_camp |
+|------|------------------|--------------------|--------------------------|-----------|-----------|----------------|-------------|
+| {REACH_ROW_1} | | | (значение) | (= {CUMULATIVE_METRIC_NAME}, fillna) | 1 | 9 | 1_{ROW_1_ID} |
+| {REACH_ROW_2} | | | (значение) | (= {CUMULATIVE_METRIC_NAME}[D] − {CUMULATIVE_METRIC_NAME}[D−1]) | 1 | 9 | 1_{ROW_2_ID} |
+
+> Константные поля заполняются примерными значениями — при интеграции заменить на актуальные.
+
+<!-- Для ad-level кумулятивной функции добавь id_key_ad: -->
+<!-- | date | {ENTITY_NAME}_id | ad_id | ad_name | {CUMULATIVE_METRIC_NAME} | increment | account_id | source_type_id | id_key_camp | id_key_ad | -->
 <!-- [/CUMULATIVE] -->
 
 <!-- Добавь таблицы для каждой дополнительной функции -->
+<!-- Для ad-level stat-функций добавь id_key_ad в таблицу констант: -->
+<!--
+| {ENTITY_NAME}_id | ad_id | account_id | source_type_id | id_key_camp | id_key_ad |
+|------------------|-------|-----------|----------------|-------------|-----------|
+| {ID} | {AD_ID} | 1 | 9 | 1_{ID} | 1_{ID}_{AD_ID} |
+-->
 
 ---
 
