@@ -1,4 +1,8 @@
 requests>=2.31.0
+# certifi — CA-бандл, через который requests проверяет TLS Ozon API (НЕ хранилище ОС).
+# Порог гарантирует наличие корня Harica: с 2026 Ozon переходит GlobalSign -> Harica,
+# старый certifi (без Harica) дал бы "certificate verify failed" после миграции.
+certifi>=2024.2.2
 pandas>=2.0.0
 python-dotenv>=1.0.0
 tqdm>=4.66.0

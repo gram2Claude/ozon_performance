@@ -163,6 +163,19 @@ python generate_tz_pdf.py   # → TZ_ozon_performance_PHP.pdf в корне ре
    Результирующие CSV в `raw_data/` сохраняются с `encoding="cp1251", errors="replace"` —
    без `errors="replace"` pandas молча пишет UTF-8, Excel на Windows открывает с кракозябрами.
 
+## TLS / проверка сертификатов
+
+HTTP-клиент использует **дефолты `requests`**: ни в одном вызове нет `verify=`,
+своего `SSLContext` или пиннинга. Значит доверие TLS идёт через **CA-бандл
+`certifi`** (пакет, не хранилище ОС). Это by design устойчиво к смене УЦ Ozon:
+с 2026 Ozon мигрирует корневой УЦ **GlobalSign → Harica**; актуальный `certifi`
+содержит оба корня, поэтому интеграция переживает миграцию без правок кода.
+
+- **Не вводить** фиксированный ca-bundle / пиннинг / `verify=<path>` — это снимет
+  автообновляемость доверия и вернёт риск `certificate verify failed` при смене УЦ.
+- `certifi` зафиксирован нижним порогом в `requirements.txt` (гарантия наличия
+  Harica на чистой установке); диагностика при ошибках TLS — `pip install -U certifi`.
+
 ## Open Questions
 
 Все 6 функций реализованы. Открытых вопросов по endpoints нет.
