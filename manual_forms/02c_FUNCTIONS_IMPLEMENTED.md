@@ -52,7 +52,7 @@ def {function_name}(
 |--------------------|-----------|---------------------|----------|
 | `date` | datetime64[ns] | `date` (string YYYY-MM-DD) | Дата отчёта |
 | `campaign_id` | string | `campaignId` | Идентификатор кампании |
-| `views` | Int64 | `views` (integer) | Показы |
+| `impressions` | Int64 | `impressions` (integer) | Показы |
 | `costs_nds` | Float64 | `moneySpent` (number) | Расход, ₽ |
 
 ### Специфика / сложности реализации

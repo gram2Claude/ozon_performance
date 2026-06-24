@@ -51,7 +51,7 @@ def get_ads_daily_stat(
 | `campaign_id` | string | передаётся в парсер | ID кампании |
 | `ad_id` | string | `ID баннера` | ID объявления/баннера |
 | `ad_name` | string | `Название` | Название объявления |
-| `views` | float | `Показы` | Показы |
+| `impressions` | float | `Показы` | Показы |
 | `clicks` | float | `Клики` | Клики |
 | `costs_nds` | float | `Расход, ₽, с НДС` | Расход с НДС |
 
@@ -80,7 +80,7 @@ def get_ads_daily_stat(
 
 ## Acceptance Criteria
 
-- [ ] `get_ads_daily_stat("2026-04-24", "2026-04-25")` возвращает DataFrame с колонками `["date", "campaign_id", "ad_id", "ad_name", "views", "clicks", "costs_nds"]`
+- [ ] `get_ads_daily_stat("2026-04-24", "2026-04-25")` возвращает DataFrame с колонками `["date", "campaign_id", "ad_id", "ad_name", "impressions", "clicks", "costs_nds"]`
 - [ ] Одна строка на объявление × день (не агрегировано до кампании)
 - [ ] `date` в формате `YYYY-MM-DD`
 - [ ] `campaign_id` и `ad_id` — string без NaN

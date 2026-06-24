@@ -17,7 +17,7 @@
 
 `ADS_STAT_COLUMNS` — уже объявлена в скаффолде как `raise NotImplementedError`. Заменить на:
 ```python
-ADS_STAT_COLUMNS = ["date", "campaign_id", "ad_id", "ad_name", "views", "clicks", "costs_nds"]
+ADS_STAT_COLUMNS = ["date", "campaign_id", "ad_id", "ad_name", "impressions", "clicks", "costs_nds"]
 ```
 
 ### 2. Новый приватный метод
@@ -32,7 +32,7 @@ ADS_STAT_COLUMNS = ["date", "campaign_id", "ad_id", "ad_name", "views", "clicks"
   - `date = _parse_date_str(row["День"])` — если `None`, пропустить (`Корректировка`)
   - Пропустить строку `Всего` / `Итого`
   - Пропустить если `ad_id` пустой
-  - Вернуть dict с полями `date`, `campaign_id`, `ad_id`, `ad_name`, `views`, `clicks`, `costs_nds`
+  - Вернуть dict с полями `date`, `campaign_id`, `ad_id`, `ad_name`, `impressions`, `clicks`, `costs_nds`
 
 Маппинг колонок CSV → поля:
 | CSV | поле |
@@ -40,7 +40,7 @@ ADS_STAT_COLUMNS = ["date", "campaign_id", "ad_id", "ad_name", "views", "clicks"
 | `День` | `date` |
 | `ID баннера` | `ad_id` |
 | `Название` | `ad_name` |
-| `Показы` | `views` |
+| `Показы` | `impressions` |
 | `Клики` | `clicks` |
 | `Расход, ₽, с НДС` | `costs_nds` |
 

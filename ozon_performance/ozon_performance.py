@@ -81,7 +81,7 @@ CAMPAIGN_DICT_COLUMNS = [
 CAMPAIGN_STAT_COLUMNS = [
     "date",
     "campaign_id",
-    "views",
+    "impressions",
     "clicks",
     "costs_nds",
     "costs_without_nds",
@@ -98,7 +98,7 @@ ADS_STAT_COLUMNS = [
     "campaign_id",
     "ad_id",
     "ad_name",
-    "views",
+    "impressions",
     "clicks",
     "costs_nds",
     "costs_without_nds",
@@ -139,7 +139,7 @@ VIDEO_ADS_COLUMNS = [
     "campaign_id",
     "ad_id",
     "ad_name",
-    "views",
+    "impressions",
     "viewable_views",
     "clicks",
     "quartile_25",
@@ -164,7 +164,7 @@ ADMIN_AUDIT_COLUMNS = [
     "account_id",
     "source_type_id",
     "owner_id",
-    "views",
+    "impressions",
     "clicks",
     "costs_nds",
     "costs_without_nds",
@@ -483,8 +483,8 @@ def _parse_stat_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
         if not date_val:
             continue
         if date_val not in daily:
-            daily[date_val] = {"views": 0.0, "clicks": 0.0, "costs_nds": 0.0}
-        daily[date_val]["views"] += _parse_num(row.get("Показы")) or 0
+            daily[date_val] = {"impressions": 0.0, "clicks": 0.0, "costs_nds": 0.0}
+        daily[date_val]["impressions"] += _parse_num(row.get("Показы")) or 0
         daily[date_val]["clicks"] += _parse_num(row.get("Клики")) or 0
         daily[date_val]["costs_nds"] += _parse_num(
             row.get("Расход, ₽, с НДС") or row.get("Расход, ₽") or row.get("Расход")
@@ -532,7 +532,7 @@ def _parse_ads_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
             "campaign_id": str(campaign_id),
             "ad_id": ad_id,
             "ad_name": str(row.get("Название") or "").strip(),
-            "views": _parse_num(row.get("Показы")) or 0.0,
+            "impressions": _parse_num(row.get("Показы")) or 0.0,
             "clicks": _parse_num(row.get("Клики")) or 0.0,
             "costs_nds": _parse_num(
                 row.get("Расход, ₽, с НДС") or row.get("Расход, ₽") or row.get("Расход")
@@ -574,7 +574,7 @@ def _parse_video_ads_csv(data: bytes, campaign_id: str) -> list[dict[str, Any]]:
             "campaign_id": str(campaign_id),
             "ad_id": ad_id,
             "ad_name": str(row.get("Название") or "").strip(),
-            "views": _parse_num(row.get("Показы")) or 0.0,
+            "impressions": _parse_num(row.get("Показы")) or 0.0,
             "viewable_views": _parse_num(row.get("Видимые показы")) or 0.0,
             "clicks": _parse_num(row.get("Клики")) or 0.0,
             "quartile_25": _parse_num(row.get("Досмотры по квартилям 25%")) or 0.0,
@@ -767,7 +767,7 @@ def get_campaigns_daily_stat(
         raw_cache_dir — папка для кэша сырых байт (ZIP/CSV). Если задана,
                         повторный запуск использует кэш вместо API-запросов.
 
-    Возвращает DataFrame с колонками: date, campaign_id, views, clicks, costs_nds
+    Возвращает DataFrame с колонками: date, campaign_id, impressions, clicks, costs_nds
     """
     client = OzonPerformanceClient()
     campaigns = client._fetch_all_campaigns()
@@ -836,7 +836,7 @@ def get_ads_daily_stat(
         raw_cache_dir — папка для кэша сырых CSV. Тот же кэш что у
                         get_campaigns_daily_stat — при одинаковых датах API не вызывается.
 
-    Возвращает DataFrame с колонками: date, campaign_id, ad_id, ad_name, views, clicks, costs_nds
+    Возвращает DataFrame с колонками: date, campaign_id, ad_id, ad_name, impressions, clicks, costs_nds
     """
     client = OzonPerformanceClient()
     campaigns = client._fetch_all_campaigns()
@@ -1063,7 +1063,7 @@ def get_video_ads_daily_stat(
 
     Возвращает DataFrame с колонками:
         date, campaign_id, ad_id, ad_name,
-        views, viewable_views, clicks,
+        impressions, viewable_views, clicks,
         quartile_25, quartile_50, quartile_75, quartile_100,
         views_with_sound, costs_nds
     """
@@ -1130,7 +1130,7 @@ def get_admin_audit(
     """Сводный аудит (admin_audit): суммы метрик по дням.
 
     Собственного эндпоинта в API нет — агрегат поверх get_campaigns_daily_stat:
-    views / clicks / costs_nds / costs_without_nds суммируются по
+    impressions / clicks / costs_nds / costs_without_nds суммируются по
     date × account_id × source_type_id × owner_id (owner_id — из справочника
     кампаний get_campaign_dict, join по campaign_id). chef_flag = 1 (дефолт).
 
@@ -1149,7 +1149,7 @@ def get_admin_audit(
     df = stats.merge(camps, on="campaign_id", how="left")
     df = (
         df.groupby(["date", "account_id", "source_type_id", "owner_id"], as_index=False)
-          [["views", "clicks", "costs_nds", "costs_without_nds"]]
+          [["impressions", "clicks", "costs_nds", "costs_without_nds"]]
           .sum()
     )
     df[["costs_nds", "costs_without_nds"]] = df[["costs_nds", "costs_without_nds"]].round(2)

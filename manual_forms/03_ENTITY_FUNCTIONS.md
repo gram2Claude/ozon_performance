@@ -31,7 +31,7 @@ Fn4. Описание одной строкой:
      → Плейсхолдер: {FN_1_ONELINER}
 
 Fn5. Колонки выходного DataFrame (перечисли имена через запятую):
-     Пример:  date, campaign_id, campaign_name, views, clicks, costs_nds
+     Пример:  date, campaign_id, campaign_name, impressions, clicks, costs_nds
      Ответ:   campaign_id, campaign_name
      Правило: все имена колонок — snake_case (например: costs_nds, ad_id, campaign_name).
      Типы данных определяются автоматически из ответа API.
@@ -59,8 +59,8 @@ Fn4. Описание одной строкой:
      → Плейсхолдер: {FN_2_ONELINER}
 
 Fn5. Колонки выходного DataFrame (перечисли имена через запятую):
-     Пример:  date, campaign_id, campaign_name, views, clicks, costs_nds
-     Ответ:   date, campaign_id, views, clicks, costs_nds
+     Пример:  date, campaign_id, campaign_name, impressions, clicks, costs_nds
+     Ответ:   date, campaign_id, impressions, clicks, costs_nds
      Правило: все имена колонок — snake_case (например: costs_nds, ad_id, campaign_name).
      Типы данных определяются автоматически из ответа API.
      → Плейсхолдер: {DF_2_COLUMNS}
@@ -87,8 +87,8 @@ Fn4. Описание одной строкой:
      → Плейсхолдер: {FN_3_ONELINER}
 
 Fn5. Колонки выходного DataFrame (перечисли имена через запятую):
-     Пример:  date, campaign_id, campaign_name, views, clicks, costs_nds
-     Ответ:   date, campaign_id, ad_id, ad_name, views, clicks, costs_nds
+     Пример:  date, campaign_id, campaign_name, impressions, clicks, costs_nds
+     Ответ:   date, campaign_id, ad_id, ad_name, impressions, clicks, costs_nds
      Правило: все имена колонок — snake_case (например: costs_nds, ad_id, campaign_name).
      Типы данных определяются автоматически из ответа API.
      → Плейсхолдер: {DF_3_COLUMNS}
@@ -115,7 +115,7 @@ Fn4. Описание одной строкой:
      → Плейсхолдер: {FN_2_ONELINER}
 
 Fn5. Колонки выходного DataFrame (перечисли имена через запятую):
-     Пример:  date, campaign_id, campaign_name, views, clicks, costs_nds
+     Пример:  date, campaign_id, campaign_name, impressions, clicks, costs_nds
      Ответ:   date, campaign_id, reach, increment
      Правило: все имена колонок — snake_case (например: costs_nds, ad_id, campaign_name).
      Типы данных определяются автоматически из ответа API.
@@ -143,7 +143,7 @@ Fn4. Описание одной строкой:
      → Плейсхолдер: {FN_3_ONELINER}
 
 Fn5. Колонки выходного DataFrame (перечисли имена через запятую):
-     Пример:  date, campaign_id, campaign_name, views, clicks, costs_nds
+     Пример:  date, campaign_id, campaign_name, impressions, clicks, costs_nds
      Ответ:   date, campaign_id, ad_id, ad_name, reach, increment
      Правило: все имена колонок — snake_case (например: costs_nds, ad_id, campaign_name).
      Типы данных определяются автоматически из ответа API.
@@ -172,8 +172,8 @@ Fn4. Описание одной строкой:
      → Плейсхолдер: {FN_2_ONELINER}
 
 Fn5. Колонки выходного DataFrame (перечисли имена через запятую):
-     Пример:  date, campaign_id, campaign_name, views, clicks, costs_nds
-     Ответ:   date, campaign_id, ad_id, ad_name, views, viewable_views,clicks,reach,quartile_25,quartile_50,quartile_75,quartile_100,views_with_sound,costs_nds
+     Пример:  date, campaign_id, campaign_name, impressions, clicks, costs_nds
+     Ответ:   date, campaign_id, ad_id, ad_name, impressions, viewable_views,clicks,reach,quartile_25,quartile_50,quartile_75,quartile_100,views_with_sound,costs_nds
      Правило: все имена колонок — snake_case (например: costs_nds, ad_id, campaign_name).
      Типы данных определяются автоматически из ответа API.
      → Плейсхолдер: {DF_2_COLUMNS}

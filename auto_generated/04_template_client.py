@@ -64,7 +64,7 @@ TOKEN_REFRESH_LEEWAY_SEC = 60           # обновлять токен за 60 
 {ENTITY_NAME_UPPER}_STAT_COLUMNS = [
     "date",
     "{ENTITY_NAME}_id",
-    # Добавь метрики: views, clicks, costs_nds и т.д.
+    # Добавь метрики: impressions, clicks, costs_nds и т.д.
 ]
 
 # Добавь константы колонок для каждой дополнительной функции:
@@ -331,13 +331,13 @@ class {CLASS_NAME}:
                         # Подставь логику парсинга под структуру ответа твоего API.
                         # Пример для group_by=DATE (итоги по сущности за день):
                         totals = report.get("totals", {})
-                        if _any_nonzero(totals, ("views", "clicks")):
+                        if _any_nonzero(totals, ("impressions", "clicks")):
                             all_rows.append({
                                 "date": day,
                                 "{ENTITY_NAME}_id": eid_str,
                                 "{ENTITY_NAME}_name": entity_name,
                                 # Добавь нужные метрики:
-                                "views": _parse_num(totals.get("views")),
+                                "impressions": _parse_num(totals.get("impressions")),
                                 "clicks": _parse_num(totals.get("clicks")),
                                 "costs_nds": _parse_num(totals.get("moneySpent")),
                             })

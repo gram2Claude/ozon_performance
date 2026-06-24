@@ -39,7 +39,7 @@ def get_video_ads_daily_stat(
 | — | контекст батча | `campaign_id` | object |
 | 1 | `ID баннера` | `ad_id` | object |
 | 2 | `Название` | `ad_name` | object |
-| 3 | `Показы` | `views` | float64 |
+| 3 | `Показы` | `impressions` | float64 |
 | 4 | `Видимые показы` | `viewable_views` | float64 |
 | 5 | `Клики` | `clicks` | float64 |
 | 9 | `Досмотры по квартилям 25%` | `quartile_25` | float64 |
@@ -59,7 +59,7 @@ def get_video_ads_daily_stat(
 | `campaign_id` | object (string) | из контекста батча |
 | `ad_id` | object (string) | `ID баннера` |
 | `ad_name` | object (string) | `Название` |
-| `views` | float64 | `Показы` |
+| `impressions` | float64 | `Показы` |
 | `viewable_views` | float64 | `Видимые показы` |
 | `clicks` | float64 | `Клики` |
 | `quartile_25` | float64 | `Досмотры по квартилям 25%` |
@@ -83,7 +83,7 @@ def get_video_ads_daily_stat(
 ```python
 VIDEO_ADS_COLUMNS = [
     "date", "campaign_id", "ad_id", "ad_name",
-    "views", "viewable_views", "clicks",
+    "impressions", "viewable_views", "clicks",
     "quartile_25", "quartile_50", "quartile_75", "quartile_100",
     "views_with_sound", "costs_nds",
 ]

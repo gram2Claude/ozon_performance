@@ -138,9 +138,9 @@ python generate_tz_pdf.py   # → TZ_ozon_performance_PHP.pdf в корне ре
 не делает построчного обогащения, а суммирует уже обогащённую статистику кампаний:
 - источник — `get_campaigns_daily_stat` + `owner_id` из `get_campaign_dict` (join по `campaign_id`)
 - группировка `date × account_id × source_type_id × owner_id`, суммируются
-  `views, clicks, costs_nds, costs_without_nds` (деньги округляются до 2 знаков)
+  `impressions, clicks, costs_nds, costs_without_nds` (деньги округляются до 2 знаков)
 - `chef_flag = 1` — константа-дефолт; колонки `ak` / `id_key_*` в выходе **отсутствуют**
-- метрика показов называется `views` (в Avito-версии — `impressions`)
+- метрика показов называется `impressions` (ранее `views`; приведено к единому неймингу с Avito)
 
 **Семантика `costs_nds`:** название = «расход С НДС», но **источник зависит
 от типа отчёта**:

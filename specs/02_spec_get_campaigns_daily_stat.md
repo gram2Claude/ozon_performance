@@ -45,7 +45,7 @@ def get_campaigns_daily_stat(
 |---------|-----|----------------|----------|
 | `date` | string (YYYY-MM-DD) | `Дата` (DD.MM.YYYY) | Дата статистики |
 | `campaign_id` | string | имя CSV-файла или колонка в CSV | ID кампании |
-| `views` | Int64 | `Показы` | Показы рекламы |
+| `impressions` | Int64 | `Показы` | Показы рекламы |
 | `clicks` | Int64 | `Клики` | Клики по рекламе |
 | `costs_nds` | float | `Расход` | Расход в рублях |
 
@@ -81,7 +81,7 @@ def get_campaigns_daily_stat(
 
 ## Acceptance Criteria
 
-- [ ] `get_campaigns_daily_stat("2026-04-24", "2026-04-25")` возвращает DataFrame с колонками `["date", "campaign_id", "views", "clicks", "costs_nds"]`
+- [ ] `get_campaigns_daily_stat("2026-04-24", "2026-04-25")` возвращает DataFrame с колонками `["date", "campaign_id", "impressions", "clicks", "costs_nds"]`
 - [ ] Одна строка на кампанию × день (только кампании с ненулевой активностью)
 - [ ] `date` в формате `YYYY-MM-DD`
 - [ ] `costs_nds >= 0` для всех строк

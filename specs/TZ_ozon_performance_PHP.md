@@ -230,7 +230,7 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE`.
 |------|-----|------------------------|
 | `date` | string YYYY-MM-DD | `День` (DD.MM.YYYY → конвертировать) |
 | `campaign_id` | string | из контекста батча (не из CSV) |
-| `views` | float | `Показы` |
+| `impressions` | float | `Показы` |
 | `clicks` | float | `Клики` |
 | `costs_nds` | float | `Расход, ₽, с НДС` |
 | `costs_without_nds` | float | **вычисляется**: `costs_nds / 1.22` (НДС 22%) |
@@ -258,7 +258,7 @@ HTTP: тот же `POST /api/client/statistics` с `groupBy=DATE`.
 | `campaign_id` | string | из контекста батча |
 | `ad_id` | string | `ID баннера` |
 | `ad_name` | string | `Название` |
-| `views` | float | `Показы` |
+| `impressions` | float | `Показы` |
 | `clicks` | float | `Клики` |
 | `costs_nds` | float | `Расход, ₽, с НДС` |
 | `costs_without_nds` | float | **вычисляется**: `costs_nds / 1.22` (НДС 22%) |
@@ -345,7 +345,7 @@ HTTP: `POST /api/client/statistics` с `groupBy=DATE` (тот же endpoint чт
 | `campaign_id` | string | из контекста батча |
 | `ad_id` | string | `ID баннера` |
 | `ad_name` | string | `Название` |
-| `views` | float | `Показы` |
+| `impressions` | float | `Показы` |
 | `viewable_views` | float | `Видимые показы` |
 | `clicks` | float | `Клики` |
 | `quartile_25` | float | `Досмотры по квартилям 25%` |
@@ -499,7 +499,7 @@ Authorization: Bearer eyJhbGc...
 
 ### 7.2. `get_campaigns_daily_stat` — кампании × день
 
-| date | campaign_id | views | clicks | costs_nds |
+| date | campaign_id | impressions | clicks | costs_nds |
 |------|-------------|-------|--------|-------------|
 | 2026-04-24 | 24251481 | 147660 | 107 | 44298.0 |
 | 2026-04-24 | 24296538 | 308342 | 166 | 92502.6 |
@@ -507,7 +507,7 @@ Authorization: Bearer eyJhbGc...
 
 ### 7.3. `get_ads_daily_stat` — объявления × день
 
-| date | campaign_id | ad_id | ad_name | views | clicks | costs_nds |
+| date | campaign_id | ad_id | ad_name | impressions | clicks | costs_nds |
 |------|-------------|-------|---------|-------|--------|-------------|
 | 2026-04-24 | 24296538 | 602634 | Моб_Белый | 145070 | 77 | 43521.0 |
 | 2026-04-24 | 24296538 | 602637 | Моб_Ржаной | 163272 | 89 | 48981.6 |
@@ -531,7 +531,7 @@ Authorization: Bearer eyJhbGc...
 
 ### 7.6. `get_video_ads_daily_stat` — видео × объявление × день
 
-| date | campaign_id | ad_id | ad_name | views | viewable_views | clicks | quartile_25 | quartile_50 | quartile_75 | quartile_100 | views_with_sound | costs_nds |
+| date | campaign_id | ad_id | ad_name | impressions | viewable_views | clicks | quartile_25 | quartile_50 | quartile_75 | quartile_100 | views_with_sound | costs_nds |
 |------|-------------|-------|---------|-------|----------------|--------|-------------|-------------|-------------|--------------|------------------|-------------|
 | 2025-08-05 | 16568770 | 401234 | OLV_Волга | 15420 | 12100 | 34 | 9800 | 7200 | 5100 | 3200 | 6800 | 18504.0 |
 

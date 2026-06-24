@@ -15,9 +15,9 @@
 - `_parse_stat_csv(data: bytes, campaign_id: str) -> list[dict]`
   - Определяет кодировку (пробует `utf-8-sig` → `utf-8` → `cp1251`)
   - Читает CSV с разделителем `,`
-  - Маппит колонки CSV → `date`, `views`, `clicks`, `costs_nds`
+  - Маппит колонки CSV → `date`, `impressions`, `clicks`, `costs_nds`
   - Первый вызов: печатает имена колонок CSV в stdout для фиксации в `00_api_methods.md`
-  - Возвращает список dict с полями `date`, `campaign_id`, `views`, `clicks`, `costs_nds`
+  - Возвращает список dict с полями `date`, `campaign_id`, `impressions`, `clicks`, `costs_nds`
 
 ### 3. Новая публичная функция
 
@@ -50,7 +50,7 @@
 
 ## Проверка
 
-- [ ] `get_campaigns_daily_stat("2026-04-24", "2026-04-25")` возвращает DataFrame с колонками `["date", "campaign_id", "views", "clicks", "costs_nds"]`
+- [ ] `get_campaigns_daily_stat("2026-04-24", "2026-04-25")` возвращает DataFrame с колонками `["date", "campaign_id", "impressions", "clicks", "costs_nds"]`
 - [ ] `date` в формате `YYYY-MM-DD`
 - [ ] `campaign_id` — string без NaN
 - [ ] `costs_nds >= 0` для всех строк

@@ -82,7 +82,7 @@ def get_campaigns_daily_stat(
 |---------|-----------|---------------------|----------|
 | `date` | object (string) | `День` (DD.MM.YYYY → YYYY-MM-DD) | Дата |
 | `campaign_id` | object (string) | передаётся в парсер (не из CSV) | ID кампании |
-| `views` | float64 | `Показы` | Показы (сумма по объявлениям за день) |
+| `impressions` | float64 | `Показы` | Показы (сумма по объявлениям за день) |
 | `clicks` | float64 | `Клики` | Клики (сумма по объявлениям за день) |
 | `costs_nds` | float64 | `Расход, ₽, с НДС` | Расход с НДС (сумма по объявлениям) |
 
@@ -140,7 +140,7 @@ def get_ads_daily_stat(
 | `campaign_id` | object (string) | передаётся в парсер (не из CSV) | ID кампании |
 | `ad_id` | object (string) | `ID баннера` | ID объявления/баннера |
 | `ad_name` | object (string) | `Название` | Название объявления |
-| `views` | float64 | `Показы` | Показы |
+| `impressions` | float64 | `Показы` | Показы |
 | `clicks` | float64 | `Клики` | Клики |
 | `costs_nds` | float64 | `Расход, ₽, с НДС` | Расход с НДС |
 
@@ -305,7 +305,7 @@ def get_video_ads_daily_stat(
 | `campaign_id` | object (string) | передаётся в парсер (не из CSV) | ID кампании |
 | `ad_id` | object (string) | `ID баннера` | ID объявления |
 | `ad_name` | object (string) | `Название` | Название объявления |
-| `views` | float64 | `Показы` | Показы |
+| `impressions` | float64 | `Показы` | Показы |
 | `viewable_views` | float64 | `Видимые показы` | Видимые показы |
 | `clicks` | float64 | `Клики` | Клики |
 | `quartile_25` | float64 | `Досмотры по квартилям 25%` | Досмотры 25% |
@@ -359,9 +359,9 @@ def get_admin_audit(
 
 ### Поля выходного DataFrame (9 колонок)
 
-`date, account_id, source_type_id, owner_id, views, clicks, costs_nds, costs_without_nds, chef_flag`.
+`date, account_id, source_type_id, owner_id, impressions, clicks, costs_nds, costs_without_nds, chef_flag`.
 
-- Метрики `views / clicks / costs_nds / costs_without_nds` **суммируются** по ключу группировки
+- Метрики `impressions / clicks / costs_nds / costs_without_nds` **суммируются** по ключу группировки
   `date × account_id × source_type_id × owner_id`.
 - `owner_id` — из справочника кампаний (`get_campaign_dict`, join по `campaign_id` до группировки).
 - `costs_nds`, `costs_without_nds` — округление до 2 знаков после суммирования.
@@ -371,7 +371,7 @@ def get_admin_audit(
 
 - **Без своего эндпоинта** — переиспользует `get_campaigns_daily_stat` (поэтому наследует кэш
   `raw_{date_from}_{date_to}_{cid}_{day}.csv` через `raw_cache_dir`).
-- **Метрика показов — `views`** (конвенция Ozon), в отличие от Avito-версии, где она называется `impressions`.
+- **Метрика показов — `impressions`** (ранее называлась `views`; приведена к единому неймингу с Avito-версией).
 - **Пустая статистика** → пустой DataFrame с колонками `ADMIN_AUDIT_COLUMNS`.
 - **Зерно после агрегации уникально** по `date × account_id × source_type_id × owner_id`
   (проверяется в smoke-тесте).
