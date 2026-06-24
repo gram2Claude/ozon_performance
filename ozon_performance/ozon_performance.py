@@ -7,6 +7,7 @@
 - get_reach_campaigns_daily_stat(global_start_date, date_from, date_to) — Охват кампаний накопительно по дням
 - get_reach_ads_daily_stat(global_start_date, date_from, date_to)       — Охват объявлений накопительно по дням
 - get_video_ads_daily_stat(date_from, date_to)                           — Видео-статистика по объявлениям по дням
+- get_admin_audit(date_from, date_to)                                     — Сводный аудит по дням (агрегат admin_audit)
 
 Учётные данные читаются из переменных окружения CLIENT_ID и CLIENT_SECRET
 (или передаются явно в OzonPerformanceClient).
@@ -155,6 +156,19 @@ VIDEO_ADS_COLUMNS = [
     "source_type_id",
     "id_key_camp",
     "id_key_ad",
+]
+
+# admin_audit — сводный аудит: агрегат поверх статистики кампаний (без своего эндпоинта)
+ADMIN_AUDIT_COLUMNS = [
+    "date",
+    "account_id",
+    "source_type_id",
+    "owner_id",
+    "views",
+    "clicks",
+    "costs_nds",
+    "costs_without_nds",
+    "chef_flag",
 ]
 
 
@@ -1106,3 +1120,38 @@ def get_video_ads_daily_stat(
     df["id_key_camp"] = "1_" + df["campaign_id"].astype(str)
     df["id_key_ad"] = df["id_key_camp"] + "_" + df["ad_id"].astype(str)
     return df.reindex(columns=VIDEO_ADS_COLUMNS).reset_index(drop=True)
+
+
+def get_admin_audit(
+    date_from: str,
+    date_to: str,
+    raw_cache_dir: str | Path | None = None,
+) -> pd.DataFrame:
+    """Сводный аудит (admin_audit): суммы метрик по дням.
+
+    Собственного эндпоинта в API нет — агрегат поверх get_campaigns_daily_stat:
+    views / clicks / costs_nds / costs_without_nds суммируются по
+    date × account_id × source_type_id × owner_id (owner_id — из справочника
+    кампаний get_campaign_dict, join по campaign_id). chef_flag = 1 (дефолт).
+
+    Параметры:
+        date_from     — начало периода, YYYY-MM-DD
+        date_to       — конец периода,  YYYY-MM-DD
+        raw_cache_dir — папка кэша сырых CSV (пробрасывается в get_campaigns_daily_stat)
+
+    Возвращает DataFrame с колонками: ADMIN_AUDIT_COLUMNS.
+    """
+    stats = get_campaigns_daily_stat(date_from, date_to, raw_cache_dir=raw_cache_dir)
+    if stats.empty:
+        return pd.DataFrame(columns=ADMIN_AUDIT_COLUMNS)
+
+    camps = get_campaign_dict()[["campaign_id", "owner_id"]]
+    df = stats.merge(camps, on="campaign_id", how="left")
+    df = (
+        df.groupby(["date", "account_id", "source_type_id", "owner_id"], as_index=False)
+          [["views", "clicks", "costs_nds", "costs_without_nds"]]
+          .sum()
+    )
+    df[["costs_nds", "costs_without_nds"]] = df[["costs_nds", "costs_without_nds"]].round(2)
+    df["chef_flag"] = 1
+    return df.reindex(columns=ADMIN_AUDIT_COLUMNS).reset_index(drop=True)

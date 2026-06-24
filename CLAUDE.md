@@ -52,10 +52,11 @@ python ozon_performance/smoke_tests/test_get_ads_daily_stat.py
 python ozon_performance/smoke_tests/test_get_reach_campaigns_daily_stat.py
 python ozon_performance/smoke_tests/test_get_reach_ads_daily_stat.py
 python ozon_performance/smoke_tests/test_get_video_ads_daily_stat.py
+python ozon_performance/smoke_tests/test_get_admin_audit.py
 ```
 
 Unit-тесты (моки): папка `tests/` зарезервирована, но сейчас пуста —
-верификация всех 6 функций идёт через `smoke_tests/` на реальном API.
+верификация всех 7 функций идёт через `smoke_tests/` на реальном API.
 Когда появятся pytest-моки, запуск будет `pytest tests/`.
 
 Генерация ТЗ для внешнего разработчика (PHP):
@@ -88,6 +89,7 @@ python generate_tz_pdf.py   # → TZ_ozon_performance_PHP.pdf в корне ре
 | `get_reach_campaigns_daily_stat(global_start_date, date_from, date_to)` | Охват | `POST /api/client/statistics` groupBy=NO_GROUP_BY |
 | `get_reach_ads_daily_stat(global_start_date, date_from, date_to)` | Охват | `POST /api/client/statistics` groupBy=NO_GROUP_BY |
 | `get_video_ads_daily_stat(date_from, date_to)` | Статистика | `POST /api/client/statistics` groupBy=DATE, только VIDEO_BANNER |
+| `get_admin_audit(date_from, date_to)` | Агрегат (admin_audit) | без своего endpoint — поверх `get_campaigns_daily_stat` + `get_campaign_dict` |
 
 **Семантика охвата:**
 `reach` — кумулятивный показатель (уникальные пользователи за период, нельзя суммировать по дням).
@@ -106,14 +108,15 @@ python generate_tz_pdf.py   # → TZ_ozon_performance_PHP.pdf в корне ре
 ## Обогащение DataFrame (соглашение проекта)
 
 Каждая публичная функция, перед `df.reindex(columns=...)`, обогащает результат
-фиксированным набором константных и вычисляемых полей. Это часть контракта всех
-функций — менять/удалять только синхронно во всех шести.
+фиксированным набором константных и вычисляемых полей. Это часть контракта шести
+базовых функций — менять/удалять только синхронно во всех шести. Седьмая функция
+`get_admin_audit` — **агрегат-исключение** (обогащается иначе, см. ниже).
 
 **Константы (все функции):** `account_id = 1`, `source_type_id = 9` — примеры,
 заменяемые при интеграции. Колонки итоговых DataFrame заданы константами
 `CAMPAIGN_DICT_COLUMNS`, `CAMPAIGN_STAT_COLUMNS`, `ADS_STAT_COLUMNS`,
-`CAMPAIGN_REACH_COLUMNS`, `ADS_REACH_COLUMNS`, `VIDEO_ADS_COLUMNS` в начале
-`ozon_performance.py`.
+`CAMPAIGN_REACH_COLUMNS`, `ADS_REACH_COLUMNS`, `VIDEO_ADS_COLUMNS`,
+`ADMIN_AUDIT_COLUMNS` в начале `ozon_performance.py`.
 
 **Справочник** (`get_campaign_dict`): дополнительно `product_id = 1`,
 `product_name = "prod_test"`, `camp_type = "camp_test"`,
@@ -127,9 +130,17 @@ python generate_tz_pdf.py   # → TZ_ozon_performance_PHP.pdf в корне ре
 - `costs_without_nds_ak = costs_without_nds * 1.5`
 
 **Составные ключи:**
-- `id_key_camp = "1_" + campaign_id` — во всех функциях
+- `id_key_camp = "1_" + campaign_id` — во всех функциях (кроме агрегата `get_admin_audit`)
 - `id_key_ad = id_key_camp + "_" + ad_id` — **только для ad-level**
   (`get_ads_daily_stat`, `get_reach_ads_daily_stat`, `get_video_ads_daily_stat`)
+
+**Агрегат `get_admin_audit`** (таблица `admin_audit`, перенос из `14_avito`) —
+не делает построчного обогащения, а суммирует уже обогащённую статистику кампаний:
+- источник — `get_campaigns_daily_stat` + `owner_id` из `get_campaign_dict` (join по `campaign_id`)
+- группировка `date × account_id × source_type_id × owner_id`, суммируются
+  `views, clicks, costs_nds, costs_without_nds` (деньги округляются до 2 знаков)
+- `chef_flag = 1` — константа-дефолт; колонки `ak` / `id_key_*` в выходе **отсутствуют**
+- метрика показов называется `views` (в Avito-версии — `impressions`)
 
 **Семантика `costs_nds`:** название = «расход С НДС», но **источник зависит
 от типа отчёта**:
@@ -142,6 +153,7 @@ python generate_tz_pdf.py   # → TZ_ozon_performance_PHP.pdf в корне ре
 **Кэш сырых CSV (`raw_data/raw_files/`):**
 - Префикс `raw_{date_from}_{date_to}_{cid}_{day}.csv` — статистика (groupBy=DATE),
   разделяется между `get_campaigns_daily_stat` / `get_ads_daily_stat` / `get_video_ads_daily_stat`
+  (+ `get_admin_audit` опосредованно — через вызов `get_campaigns_daily_stat`)
 - Префикс `reach_{global_start_date}_{cid}_{day}.csv` — охват (groupBy=NO_GROUP_BY),
   разделяется между `get_reach_campaigns_daily_stat` / `get_reach_ads_daily_stat`
 - При смене дат `_evict_stale_*_cache()` удаляет файлы с несоответствующим префиксом
@@ -178,7 +190,7 @@ HTTP-клиент использует **дефолты `requests`**: ни в о
 
 ## Open Questions
 
-Все 6 функций реализованы. Открытых вопросов по endpoints нет.
+Все 7 функций реализованы (6 базовых + агрегат `get_admin_audit`). Открытых вопросов по endpoints нет.
 Актуальный список: `info/00_api_methods.md` → раздел "Open Questions".
 
 ## Структура файлов
@@ -225,7 +237,8 @@ ozon_performance/
 Этот репозиторий — **готовый инстанс** шаблонного воркфлоу из `test/`
 (см. `test/00_README.md`, шаги 0–5: инициализация структуры → анкета
 проекта → сводка API → скаффолд → цикл реализации функций → ТЗ).
-Шаги 0–4 уже выполнены: все 6 функций реализованы, ТЗ сгенерировано.
+Шаги 0–4 уже выполнены: все 6 базовых функций реализованы, ТЗ сгенерировано
+(+ позже добавлен агрегат `get_admin_audit`, перенос из `14_avito`).
 
 Когда пользователь говорит «инициализируй структуру», «сгенерируй демо»
 и т.п., **по умолчанию это про работу внутри текущего проекта**, а не про

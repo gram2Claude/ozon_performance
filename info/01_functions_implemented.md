@@ -329,3 +329,55 @@ def get_video_ads_daily_stat(
 | Дата | Изменение | Причина |
 |------|-----------|---------|
 | 2026-05-12 | Первичная реализация | — |
+
+---
+
+## Функция: `get_admin_audit`
+
+- **Статус:** реализована
+- **Дата реализации:** 2026-06-24
+- **Тип:** статистика (агрегат по дням, таблица **admin_audit**)
+- **Файл:** `ozon_performance/ozon_performance.py` → `get_admin_audit(date_from, date_to)`
+- **Spec/Plan:** отдельно не составлялись (агрегат по требованию проекта; перенос из `14_avito`)
+- **Smoke-test:** `ozon_performance/smoke_tests/test_get_admin_audit.py`
+- **CSV:** `raw_data/get_admin_audit_{from}_{to}.csv`
+
+### API-метод
+
+- **Собственного эндпоинта в API нет.** Агрегат поверх `get_campaigns_daily_stat(date_from, date_to)`
+  (`POST /api/client/statistics`, groupBy=DATE) + `get_campaign_dict` для `owner_id`.
+
+### Параметры функции (Python-сигнатура)
+
+```python
+def get_admin_audit(
+    date_from: str,                    # YYYY-MM-DD
+    date_to: str,                      # YYYY-MM-DD
+    raw_cache_dir: str | Path | None = None,
+) -> pd.DataFrame:
+```
+
+### Поля выходного DataFrame (9 колонок)
+
+`date, account_id, source_type_id, owner_id, views, clicks, costs_nds, costs_without_nds, chef_flag`.
+
+- Метрики `views / clicks / costs_nds / costs_without_nds` **суммируются** по ключу группировки
+  `date × account_id × source_type_id × owner_id`.
+- `owner_id` — из справочника кампаний (`get_campaign_dict`, join по `campaign_id` до группировки).
+- `costs_nds`, `costs_without_nds` — округление до 2 знаков после суммирования.
+- `chef_flag = 1` — константа-дефолт.
+
+### Специфика / сложности реализации
+
+- **Без своего эндпоинта** — переиспользует `get_campaigns_daily_stat` (поэтому наследует кэш
+  `raw_{date_from}_{date_to}_{cid}_{day}.csv` через `raw_cache_dir`).
+- **Метрика показов — `views`** (конвенция Ozon), в отличие от Avito-версии, где она называется `impressions`.
+- **Пустая статистика** → пустой DataFrame с колонками `ADMIN_AUDIT_COLUMNS`.
+- **Зерно после агрегации уникально** по `date × account_id × source_type_id × owner_id`
+  (проверяется в smoke-тесте).
+
+### История изменений
+
+| Дата | Изменение | Причина |
+|------|-----------|---------|
+| 2026-06-24 | Первичная реализация (перенос таблицы admin_audit из проекта `14_avito`) | Требование проекта |
